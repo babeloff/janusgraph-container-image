@@ -3,3 +3,7 @@
 
 # Dev tooling
 .idea/
+.gradle/
+!gradle-wrapper.jar
+gradle-app.setting
+
