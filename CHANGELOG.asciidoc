@@ -1,0 +1,7 @@
+= Change Log
+
+== Initialization
+
+Copy over the documentation from JanusGraph/janusgraph-docker in preparation for a rewirte.
+
+Include all license documents.
