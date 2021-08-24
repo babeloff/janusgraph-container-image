@@ -2,7 +2,8 @@
 ARG CREATED=test
 ARG REVISION=latest
 
-FROM debian:buster-slim as builder
+FROM openjdk:8-jre-slim-buster as builder
+
 
 ARG JANUS_VERSION=0.5.3
 ARG YQ_VERSION=4.9.3
@@ -23,8 +24,6 @@ RUN /usr/bin/gpg --import KEYS
 RUN /usr/bin/gpg --batch --verify janusgraph.zip.asc janusgraph.zip
 RUN /usr/bin/unzip janusgraph.zip
 RUN /bin/mv janusgraph-${JANUS_VERSION} ${JANUS_HOME}
-RUN find ${JANUS_HOME} -name 'janusgraph-*.properties' -z \
-    | xargs --null sh -c 'for arg; do java props2yaml.jar "$arg" > "${arg%.properties}.yaml"; done'
 
 # Clean up
 RUN /bin/rm -rf ${JANUS_HOME}/elasticsearch
@@ -37,8 +36,12 @@ RUN /bin/rm -rf /var/lib/apt/lists/*
 COPY conf ${JANUS_HOME}/conf/custom-server/
 COPY scripts/remote-connect.gremlin ${JANUS_HOME}/scripts/
 
+RUN find ${JANUS_HOME} -name 'janusgraph-*.properties' -print0  \
+    | xargs --null sh -c 'for arg; do java -jar /opt/props2yaml.jar "$arg" > "${arg%.properties}.yaml"; /bin/rm "$arg"; done'
+
 # Next build stage
 FROM openjdk:8-jre-slim-buster as image
+
 ARG CREATED
 ARG REVISION
 
@@ -62,6 +65,7 @@ RUN /usr/bin/apt-get install -y dos2unix
 
 COPY --from=builder /opt/janusgraph/ /opt/janusgraph/
 COPY --from=builder /opt/yq /usr/bin/yq
+#COPY --from=builder /opt/props2yaml.jar /usr/bin/props2yaml.jar
 COPY scripts/docker-entrypoint.sh /usr/local/bin/
 COPY scripts/load-init-db.sh /usr/local/bin/
 

@@ -1,0 +1,45 @@
+= Developer Guide
+
+The docker image may be build as follows.
+[source,shell script]
+----
+./gradlew docker
+----
+
+[source,shell script]
+----
+./gradlew dockerRun
+----
+
+[source,shell script]
+----
+./gradlew dockerRunStatus
+----
+[source,shell script]
+----
+./gradlew dockerStop
+./gradlew dockerRemoveContainer
+----
+
+The Janusgraph source includes a number of configuration files.
+These are properties files.
+We use `yq` to edit the Janusgraph configuration files.
+See link:operator-guide.asciidoc[the Operator Guide].
+At present `yq` does not read java properties files (although it does produce them).
+The problem is resolved by converting the java properties configuration files
+provided with Janusgraph into `yaml` files using
+link:https://github.com/Codearte/props2yaml[props2yaml].
+[source,bash]
+----
+curl -fSL https://repo1.maven.org/maven2/io/codearte/props2yaml/props2yaml/0.5/props2yaml-0.5-jar-with-dependencies.jar -o props2yaml.jar
+----
+
+[source,bash]
+----
+java -jar props2yaml.jar application.properties > application.yaml
+----
+
+[source,bash]
+----
+docker exec -it janusgraph-docker2 bash
+----

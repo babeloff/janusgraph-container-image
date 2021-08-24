@@ -44,7 +44,7 @@ then
     ls "conf/gremlin-server/"
   fi
 
-  JANUS_YAML_SRC="conf/gremlin-server/${JANUSGRAPH_TEMPLATE:-janusgraph}.yaml"
+  JANUS_YAML_SRC="conf/gremlin-server/${JANUS_TEMPLATE:-janusgraph}.yaml"
   if cp "${JANUS_YAML_SRC}" "${JANUS_YAML}"
   then
     echo 'copied ' "${JANUS_YAML_SRC}"
@@ -70,15 +70,15 @@ then
       echo "update gremlin server '$EVAL_END' with '${ENV_VAL}'"
       yq eval "${ENV_VAL}" "${GREMLIN_YAML}" --prettyPrint --inplace
 
-    # JANUSGRAPH__*
-    elif [[ "${EVAL_END}" =~ JANUSGRAPH__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
+    # JANUS__*
+    elif [[ "${EVAL_END}" =~ JANUS__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
     then
       EVAL_END=${BASH_REMATCH[1]}
       EVAL_KEY=${BASH_REMATCH[2]}
 
-      JANUS_CFG_TGT="${JANUS_CONFIG_DIR}/janusgraph_${EVAL_END:-default}}.yaml"
-      JANUS_PROPS_TGT="${JANUS_CONFIG_DIR}/janusgraph_${EVAL_END:-default}}.properties"
-      if -z "${JANUS_CFG_TGT}"
+      JANUS_CFG_TGT="${JANUS_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.yaml"
+      JANUS_PROPS_TGT="${JANUS_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.properties"
+      if ! -f "${JANUS_CFG_TGT}"
       then
         cp "${JANUS_YAML}" "${JANUS_CFG_TGT}"
       fi
@@ -108,9 +108,9 @@ then
       echo '== ENVIRONMENT =================================='
       env
       ;;
-     server)
+     server | config)
       echo '== GREMLIN SERVER ==============================='
-      yq e -P '... comments=""' "${JANUS_CONFIG_DIR}/gremlin-server.yaml"
+      yq eval --prettyPrint '... comments=""' "${JANUS_CONFIG_DIR}/gremlin-server.yaml"
       ;;
      graph | graphs)
       find "${JANUS_CONFIG_DIR}" -type f -name '*.properties' | while read -r configFile

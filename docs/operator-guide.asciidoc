@@ -141,9 +141,22 @@ these files are `yaml` files and are controlled in the same fashion as the greml
 i.e. via `yq` commands.
 
 
-[cols="3,3,8"]
+[cols="2,8,4"]
 |===
 | Variable | Description | Default
+
+| `JG_ACTION`
+a| A space delimited list of objects you wish to print.
+* run  : run the Janusgraph server
+| run
+
+| `JG_SHOW`
+a| A space delimited list of objects you wish to print.
+* env    : environment variables
+* server : the content of gremlin-server.yaml
+* graph  : a list of the janusgraph-*.properties files and their contents
+* script : a list of the *.groovy scripts and their contents
+| empty list
 
 | `GREMLIN__*`
 | Any Gremlin Server configuration option to override in the default configuration (YAML) file,
@@ -151,16 +164,16 @@ specified with an outer `GREMLIN_SERVER` namespace (e.g., `GREMLIN__threadPoolWo
 See "Gremlin Server Configuration" <<GS_CONFIG>> for available options.
 See <<Gremlin-Server-Config, Gremlin Server Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables.
-| no default value
+| optional
 
-| `JANUSGRAPH_TEMPLATE`
+| `JANUS_TEMPLATE`
 | The Janusgraph template specifies the template properties file to which
-the `JANUSGRAPH__*` edits will be applied for each back-end.
+the `JANUS__*` edits will be applied for each back-end.
 | no default value
 
-| `JANUSGRAPH__*`
+| `JANUS__*`
 | Any JanusGraph configuration option to override in the template properties file,
-specified with an outer `JANUS_PROPS` namespace (e.g., `JANUSGRAPH__foo_storageHostname`).
+specified with an outer `JANUS` namespace (e.g., `JANUS__foo_storageHostname`).
 See "JanusGraph Configuration" <<JG_CONFIG>> for available options.
 See <<Janusgraph-Backend-Config, Janusgraph Database Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables
@@ -225,9 +238,10 @@ https://mikefarah.gitbook.io/yq/operators/delete
 
 For example, to delete the 'graphs.graph' configuration property we can do the following:
 
-[source,text]
+[source,bash]
 ----
-$ docker run --rm -it \
+export JANUS_SHOW='server'
+docker run --rm -it \
   -e GREMLIN__delGraph='del(.graphs.graph)'
   docker.io/janusgraph/janusgraph:latest janusgraph
 ----
@@ -247,10 +261,11 @@ This example shows how to append an item to a list.
 
 [source,bash]
 ----
+export JANUS_SHOW='server'
 export PLUGIN="org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"
 docker run --rm -it \
   -e GREMLIN__addPlugin='.scriptEngines.gremlin-groovy.plugins[$PLUGIN].files += /scripts/another-script.groovy' \
-  docker.io/janusgraph/janusgraph:latest janusgraph show-config
+  docker.io/janusgraph/janusgraph:latest janusgraph
 ----
 [source,text]
 ----
@@ -310,7 +325,6 @@ and then provide additional individual configuration to override/extend the temp
 The available templates depend on the JanusGraph version
 (see <<JG_TEMPLATES,conf/gremlin-server/janusgraph*.yaml>>).
 
-
 [cols="3,3"]
 |===
 | `Janusgraph Backend Template` | Supported Versions
@@ -336,7 +350,7 @@ storage and server settings:
 ----
 docker run --name janusgraph2-default \
     -e JANUS_PROPS_TEMPLATE=cql-es \
-    -e JANUSGRAPH__default_storageCachePercentage='.storage.cache-percentage=80' \
+    -e JANUS__default_storageCachePercentage='.storage.cache-percentage=80' \
     -e GREMLIN__workerCount='.threadPoolWorker=2' \
     docker.io/babeloff/janusgraph2:latest
 ----
@@ -401,6 +415,7 @@ index.search.directory=/var/lib/janusgraph/index
 The user is created with uid 999 and gid 999 and user's a home dir is `/var/lib/janusgraph`.
 
 Following folder are created with these user rights:
+
 * `/var/lib/janusgraph`
 * `/etc/opt/janusgraph`
 * `/opt/janusgraph`

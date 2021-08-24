@@ -1,8 +1,0 @@
-= Developer Guide
-
-The docker image may be build as follows.
-[source,shell script]
-----
-./gradlew docker
-----
-
