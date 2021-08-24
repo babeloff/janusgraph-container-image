@@ -7,5 +7,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "janusgraph-logger2"
+rootProject.name = "janusgraph-docker2"
 

@@ -11,9 +11,12 @@ plugins {
 version = "0.5.3"
 
 docker {
-    name = "project.name"
+    name = "${project.name}:${project.version}"
     setDockerfile(file("DockerFile"))
-    tag("DockerHub", "phreed/janusgraph-docker2:${project.version}")
+    files("${project.projectDir}/src")
+
+    // the following are used by the dockerPush task
+    tag("DockerHub", "babeloff/${project.name}:${project.version}")
     labels(mapOf("implementation" to "janusgraph", "api" to "tinkerpop3"))
 }
 

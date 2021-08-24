@@ -1,6 +1,6 @@
 
 ARG CREATED=test
-ARG REVISION=test
+ARG REVISION=latest
 
 FROM debian:buster-slim as builder
 
@@ -15,6 +15,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN /usr/bin/apt-get update -y
 RUN /usr/bin/apt-get install -y gpg unzip curl dos2unix
 RUN /usr/bin/curl -fSL https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 -o yq
+RUN /usr/bin/curl -fSL https://repo1.maven.org/maven2/io/codearte/props2yaml/props2yaml/0.5/props2yaml-0.5-jar-with-dependencies.jar -o props2yaml.jar
 RUN /usr/bin/curl -fSL https://github.com/JanusGraph/janusgraph/releases/download/v${JANUS_VERSION}/janusgraph-${JANUS_VERSION}.zip -o janusgraph.zip
 RUN /usr/bin/curl -fSL https://github.com/JanusGraph/janusgraph/releases/download/v${JANUS_VERSION}/janusgraph-${JANUS_VERSION}.zip.asc -o janusgraph.zip.asc
 RUN /usr/bin/curl -fSL https://github.com/JanusGraph/janusgraph/releases/download/v${JANUS_VERSION}/KEYS -o KEYS
@@ -22,6 +23,8 @@ RUN /usr/bin/gpg --import KEYS
 RUN /usr/bin/gpg --batch --verify janusgraph.zip.asc janusgraph.zip
 RUN /usr/bin/unzip janusgraph.zip
 RUN /bin/mv janusgraph-${JANUS_VERSION} ${JANUS_HOME}
+RUN find ${JANUS_HOME} -name 'janusgraph-*.properties' -z \
+    | xargs --null sh -c 'for arg; do java props2yaml.jar "$arg" > "${arg%.properties}.yaml"; done'
 
 # Clean up
 RUN /bin/rm -rf ${JANUS_HOME}/elasticsearch
@@ -35,7 +38,9 @@ COPY conf ${JANUS_HOME}/conf/custom-server/
 COPY scripts/remote-connect.gremlin ${JANUS_HOME}/scripts/
 
 # Next build stage
-FROM openjdk:8-jre-slim-buster
+FROM openjdk:8-jre-slim-buster as image
+ARG CREATED
+ARG REVISION
 
 ENV JANUS_VERSION=${JANUS_VERSION}
 ENV JANUS_HOME=/opt/janusgraph
@@ -43,11 +48,11 @@ ENV JANUS_CONFIG_DIR=/etc/opt/janusgraph
 ENV JANUS_DATA_DIR=/var/lib/janusgraph
 ENV JANUS_SERVER_TIMEOUT=30
 ENV JANUS_STORAGE_TIMEOUT=60
-ENV JANUS_PROPS_TEMPLATE=berkeleyje-lucene
+ENV JANUS_PROPS_TEMPLATE=cql-es
 ENV JANUS_INIT_DB_DIR=/docker-entrypoint-init-db.d
-ENV GREMLIN_SERVER__00graphProperties='.graphs.graph = "/etc/opt/janusgraph/janusgraph.properties"'
-ENV GREMLIN_SERVER__00threadPoolWorker='.threadPoolWorker = 1'
-ENV GREMLIN_SERVER__00gremlinPool='.gremlinPool = 8'
+ENV GREMLIN__00graphProperties='.graphs.graph = "/etc/opt/janusgraph/janusgraph.properties"'
+ENV GREMLIN__00threadPoolWorker='.threadPoolWorker = 1'
+ENV GREMLIN__00gremlinPool='.gremlinPool = 8'
 
 RUN /usr/sbin/groupadd -r janusgraph --gid=999
 RUN /usr/sbin/useradd -r -g janusgraph --uid=999 -d ${JANUS_DATA_DIR} janusgraph

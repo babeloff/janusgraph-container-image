@@ -15,7 +15,7 @@
 # limitations under the License.
 
 GREMLIN_YAML="${JANUS_CONFIG_DIR}/gremlin-server.yaml"
-JANUS_PROPS="${JANUS_CONFIG_DIR}/janusgraph.properties"
+JANUS_YAML="${JANUS_CONFIG_DIR}/janusgraph.yaml"
 
 if [ "$1" == 'janusgraph' ]
 then
@@ -44,12 +44,12 @@ then
     ls "conf/gremlin-server/"
   fi
 
-  JANUS_PROPS_SRC="conf/gremlin-server/${JANUS_PROPS_TEMPLATE:-janusgraph-server}.properties"
-  if cp "${JANUS_PROPS_SRC}" "${JANUS_PROPS}"
+  JANUS_YAML_SRC="conf/gremlin-server/${JANUSGRAPH_TEMPLATE:-janusgraph}.yaml"
+  if cp "${JANUS_YAML_SRC}" "${JANUS_YAML}"
   then
-    echo 'copied ' "${JANUS_PROPS_SRC}"
+    echo 'copied ' "${JANUS_YAML_SRC}"
   else
-    echo 'failed to copy ' "${JANUS_PROPS_SRC}"
+    echo 'failed to copy ' "${JANUS_YAML_SRC}"
     ls "conf/gremlin-server/"
   fi
 
@@ -58,49 +58,40 @@ then
   chmod -R 600 "${JANUS_CONFIG_DIR}"/*
 
   echo 'apply configuration from environment'
-  while IFS='=' read -r env_var_key
+  while IFS='=' read -r ENV_KEY
   do
-    env_var_val="${!env_var_key}"
+    ENV_VAL="${!ENV_KEY}"
 
-    # GREMLIN_SERVER__*
-    if [[ "${env_var_key}" =~ GREMLIN_SERVER__([[:alnum:]_]+) ]]
+    # GREMLIN__*
+    if [[ "${EVAL_END}" =~ GREMLIN__([[:alnum:]_]+) ]]
     then
-      env_var_key=${BASH_REMATCH[1]}
-      echo 'update gremlin server ' "$env_var_key" ' with ' "${env_var_val}"
-      yq eval "${env_var_val}" "${GREMLIN_YAML}" --prettyPrint --inplace
+      EVAL_END=${BASH_REMATCH[1]}
+      EVAL_KEY=${ENV_VAL}
+      echo "update gremlin server '$EVAL_END' with '${ENV_VAL}'"
+      yq eval "${ENV_VAL}" "${GREMLIN_YAML}" --prettyPrint --inplace
 
-    # JANUS_PROPS__*
-    elif [[ "${env_var_key}" =~ JANUS_PROPS__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
+    # JANUSGRAPH__*
+    elif [[ "${EVAL_END}" =~ JANUSGRAPH__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
     then
-      env_graph=${BASH_REMATCH[1]}
-      env_var_name=${BASH_REMATCH[2]}
+      EVAL_END=${BASH_REMATCH[1]}
+      EVAL_KEY=${BASH_REMATCH[2]}
 
-      echo 'update graph name ' "$env_graph" ', and property key ' "$env_var_name"
-      janus_props_graph="${JANUS_CONFIG_DIR}/janusgraph-${env_graph}.properties"
-      if ! [[ -f "${janus_props_graph}" ]]
+      JANUS_CFG_TGT="${JANUS_CONFIG_DIR}/janusgraph_${EVAL_END:-default}}.yaml"
+      JANUS_PROPS_TGT="${JANUS_CONFIG_DIR}/janusgraph_${EVAL_END:-default}}.properties"
+      if -z "${JANUS_CFG_TGT}"
       then
-        cp "${JANUS_PROPS}" "${janus_props_graph}"
+        cp "${JANUS_YAML}" "${JANUS_CFG_TGT}"
       fi
-      if  [[ ${env_var_val} =~ ^([[:graph:]]+)[[:space:]]*[=][[:space:]]*(.+)$ ]]
-      then
-        env_prop_key=${BASH_REMATCH[1]}
-        env_prop_val=${BASH_REMATCH[2]}
-        if grep -q -E "^\s*${env_prop_key}\s*=\.*" "${JANUS_PROPS}"
-        then
-          echo 'update janusgraph property ' "$env_prop_key" ' -> ' "$env_prop_val"
-          sed --regexp-extended --in-place "s#^(\s*${env_prop_key}\s*=).*#\\1${env_prop_val}#" "${janus_props_graph}"
-        else
-          echo 'append janusgraph property ' "$env_prop_key" ' -> ' "$env_prop_val"
-          echo "${env_prop_key}=${env_prop_val}" >> "${janus_props_graph}"
-        fi
-      fi
+      echo "update graph back-end '$EVAL_END' and property eval '$ENV_VAL'"
+      yq eval "${ENV_VAL}" "${JANUS_CFG_TGT}" --prettyPrint --inplace
+      yq eval --outputformat=props "${JANUS_CFG_TGT}" > "${JANUS_PROPS_TGT}"
 
     # GREMLIN_GROOVY__*
-    elif [[ "${env_var_key}" =~ GREMLIN_GROOVY__([[:alnum:]_]+) ]]
+    elif [[ "${EVAL_END}" =~ GREMLIN_GROOVY__([[:alnum:]_]+) ]]
     then
-      env_var_key=${BASH_REMATCH[1]}
-      echo 'define gremlin script ' "$env_var_key" ' with ' "${env_var_val}"
-      echo "${env_var_val}" > "${JANUS_CONFIG_DIR}/${env_var_key}.groovy"
+      EVAL_END=${BASH_REMATCH[1]}
+      echo 'define gremlin script ' "$EVAL_END" ' with ' "${env_var_val}"
+      echo "${env_var_val}" > "${JANUS_CONFIG_DIR}/${EVAL_END}.groovy"
 
     # other environment parameters that we are not concerned about
     else
