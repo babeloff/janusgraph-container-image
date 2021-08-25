@@ -10,7 +10,6 @@
 :source-highlighter: rouge
 :icons: font
 :docinfo: private
-:graphquery: ../query/groovy
 :graphscript: ../script
 :sectnums:
 :toc:
@@ -166,24 +165,24 @@ See <<Gremlin-Server-Config, Gremlin Server Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables.
 | optional
 
-| `JANUS_TEMPLATE`
+| `JG_TEMPLATE`
 | The Janusgraph template specifies the template properties file to which
-the `JANUS__*` edits will be applied for each back-end.
+the `JG__*` edits will be applied for each back-end.
 | no default value
 
-| `JANUS__*`
+| `JG__*`
 | Any JanusGraph configuration option to override in the template properties file,
-specified with an outer `JANUS` namespace (e.g., `JANUS__foo_storageHostname`).
+specified with an outer `JANUS` namespace (e.g., `JG__foo_storageHostname`).
 See "JanusGraph Configuration" <<JG_CONFIG>> for available options.
 See <<Janusgraph-Backend-Config, Janusgraph Database Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables
 | no default value
 
-| `JANUS_SERVER_TIMEOUT`
+| `JG_SERVER_TIMEOUT`
 | Timeout (seconds) used when waiting for Gremlin Server before executing initialization scripts.
 | `30`
 
-| `JANUS_STORAGE_TIMEOUT`
+| `JG_STORAGE_TIMEOUT`
 | Timeout (seconds) used when waiting for the storage backend before starting Gremlin Server.
 | `60`
 
@@ -192,7 +191,7 @@ section below for help edit gremlin server configuration using environment varia
 Enables a container running Gremlin Console to connect to a remote server using `conf/remote.yaml`.
 | no default value
 
-| `JANUS_INITDB_DIR`
+| `JG_INITDB_DIR`
 | Defines the location of the initialization scripts.
 | `/docker-entrypoint-initdb.d`
 
@@ -240,7 +239,7 @@ For example, to delete the 'graphs.graph' configuration property we can do the f
 
 [source,bash]
 ----
-export JANUS_SHOW='server'
+export JG_SHOW='server'
 docker run --rm -it \
   -e GREMLIN__delGraph='del(.graphs.graph)'
   docker.io/janusgraph/janusgraph:latest janusgraph
@@ -261,7 +260,7 @@ This example shows how to append an item to a list.
 
 [source,bash]
 ----
-export JANUS_SHOW='server'
+export JG_SHOW='server'
 export PLUGIN="org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"
 docker run --rm -it \
   -e GREMLIN__addPlugin='.scriptEngines.gremlin-groovy.plugins[$PLUGIN].files += /scripts/another-script.groovy' \
@@ -291,7 +290,7 @@ scriptEngines:
 === Mounted Configuration
 
 By default, the container stores both the `janusgraph.properties` and `gremlin-server.yaml` files
-in the `JANUS_CONFIG_DIR` directory which maps to `/etc/opt/janusgraph`.
+in the `JG_CONFIG_DIR` directory which maps to `/etc/opt/janusgraph`.
 When the container starts, it updates those files using the environment variable values.
 If you have a specific configuration and do not wish to use environment variables to configure JanusGraph,
 you may mount a directory containing your own version of those configuration files into the container
@@ -317,7 +316,7 @@ janusgraph-mount | chown: changing ownership of '/etc/opt/janusgraph/janusgraph.
 [[Janusgraph-Backend-Config]]
 ==== Janusgraph Back-End Configuration : Environment Variable Syntax
 
-The `JANUS_PROPS_TEMPLATE` environment variable is used to define a template JanusGraph properties file.
+The `JG_TEMPLATE` environment variable is used to define a template JanusGraph properties file.
 Values in the template properties file are used unless an alternate value
 for a given property is provided in the environment.
 The common usage will be to specify a template for the general environment (e.g., `cassandra-es`)
@@ -349,8 +348,8 @@ storage and server settings:
 [source,bash]
 ----
 docker run --name janusgraph2-default \
-    -e JANUS_PROPS_TEMPLATE=cql-es \
-    -e JANUS__default_storageCachePercentage='.storage.cache-percentage=80' \
+    -e JG_TEMPLATE=cql-es \
+    -e JG__default_storageCachePercentage='.storage.cache-percentage=80' \
     -e GREMLIN__workerCount='.threadPoolWorker=2' \
     docker.io/babeloff/janusgraph2:latest
 ----

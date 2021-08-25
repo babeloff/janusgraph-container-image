@@ -1,0 +1,182 @@
+# Copyright 2019 JanusGraph Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: "3.8"
+
+services:
+  # tag::oauth[]
+  #  oauth:
+  #    ref: "https://oauth2-proxy.github.io/oauth2-proxy/docs/"
+  #    image: quay.io/oauth2-prosy/oauth2-proxy:latest
+  #    container_name: oauth2-proxy
+  #    ports:
+  #      - "28120:12"
+  #    driver: bridge
+  #    environment:
+  #      OAUTH2_PROXY_PROXY_WEBSOCKETS: true
+  # end::oauth[]
+
+  # tag::janusgraph[]
+  janusgraph:
+    labels:
+      edu.vanderbilt.isis.lab: "mesolab"
+    #    image: docker.io/janusgraph/janusgraph:0.5.3
+    build: ../janusgraph-docker2
+    container_name: jce-jg
+    depends_on:
+      - cassandra
+      - elasticsearch
+    # https://github.com/JanusGraph/janusgraph-docker/blob/master/README.md#docker-environment-variables
+    environment:
+      JG_SHOW: "config"
+      JVM_OPTIONS:  "-Xms512m -Xmx512m"
+      # tag::janusgraph_environment[]
+      GREMLIN_TEMPLATE: "gremlin-server-cql-es"
+      JG_TEMPLATE: "janusgraph-cql-es-server"
+
+      # http://tinkerpop.apache.org/javadocs/3.4.6/full/org/apache/tinkerpop/gremlin/server/Settings.html
+
+      GREMLIN__scriptEvaluationTimeout: '.scriptEvaluationTimeout = 1200000'
+      GREMLIN__threadPoolWorker: '.threadPoolWorker = 3'
+
+      # the following allows the the server to serialize sub-graphs
+      GREMLIN__tinkerIO: >-
+        .serializers[] |=
+        select(.className == "org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0"
+           and .config.ioRegistries)
+        .config.ioRegistries += ["org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3d0"]
+
+      # 2^20=1,048,576Bytes=1MiB , the default is 2^16=64KiB=65,536Bytes
+      GREMLIN__maxContentLength: '.maxContentLength = 1048576'
+
+      # configure the default graph
+      GREMLIN__defaultGraph: '.graphs.graph = "/etc/opt/janusgraph/janusgraph-graph.properties"'
+      JG__graph_storageHostname: 'storage.hostname = jce-cql'
+      JG__graph_indexSearchHostname: 'index.search.hostname = jce-es'
+      JG__graph_storageBatchLoading: 'storage.batch-loading = true'
+      JG__graph_schemaDefault: 'schema.default = logging'
+      JG__graph_metrics: 'metrics.enabled = true'
+
+      GREMLIN_GROOVY__graphTraversal: |
+        def globals = [:]
+        globals << [hook : [
+          onStartUp: { ctx ->
+            ctx.logger.info("Executed once at startup of Gremlin Server.")
+          },
+          onShutDown: { ctx ->
+            ctx.logger.info("Executed once at shutdown of Gremlin Server.")
+          }
+        ] as LifeCycleHook]
+        globals << [g : graph.traversal()]
+
+      GREMLIN__mgmtGraphTraversal: >-
+        .scriptEngines.gremlin-groovy.plugins.["org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"]
+        .files = ["/etc/opt/janusgraph/graphTraversal.groovy"]
+
+      # end::janusgraph_environment[]
+    ports:
+      - "8182:8182"
+    networks:
+      - jg-network
+      - jce-network
+    volumes:
+      - type: volume
+        source: "jg-corpus-data"
+        target: /opt/janusgraph/corpus
+        read_only: true
+      - type: volume
+        source: "jg-product-data"
+        target: /opt/janusgraph/product
+    healthcheck:
+      test:
+        - "CMD"
+        - "bin/gremlin.sh"
+        - "-e"
+        - "scripts/remote-connect.gremlin"
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    # end::janusgraph[]
+
+  # https://hub.docker.com/_/cassandra
+  # https://github.com/docker-library/cassandra
+  # tag::cassandra[]
+  cassandra:
+    labels:
+      edu.vanderbilt.isis.lab: "mesolab"
+    image: cassandra:3
+    container_name: "jce-cql"
+    environment:
+      JVM_OPTS:  "-Xms512m -Xmx512m"
+      CASSANDRA_START_RPC: "true"
+      CASSANDRA_SEEDS: "cassandra"
+      CASSANDRA_PASSWORD_SEEDER: "yes"
+      CASSANDRA_PASSWORD: "cassandra"
+    ports:
+      - "7000:7000"
+      - "9042:9042"
+      - "9160:9160"
+    networks:
+      - jce-network
+    volumes:
+      - type: volume
+        source: "jg-cql-data"
+        target: "/var/lib/cassandra/data"
+  # end::cassandra[]
+
+  # tag::elasticsearch[]
+  elasticsearch:
+    labels:
+      edu.vanderbilt.isis.lab: "mesolab"
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.0
+    container_name: jce-es
+    environment:
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      http.host: "0.0.0.0"
+      network.host: "0.0.0.0"
+      transport.host: "127.0.0.1"
+      cluster.name: "docker-cluster"
+      xpack.security.enabled: "false"
+      discovery.zen.minimum_master_nodes: "1"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - jce-network
+    volumes:
+      - type: volume
+        source: "jg-es-data"
+        target: "/var/lib/elasticsearch/data"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    # end::elasticsearch[]
+
+
+# https://docs.docker.com/compose/networking/
+networks:
+  jce-network:
+    name: jce-network
+  jg-network:
+    name: jg-network
+
+# tag::volumes[]
+volumes:
+  jg-corpus-data: { external: true }
+  jg-product-data: { external: true }
+  jg-cql-data: { external: true }
+  jg-es-data: { external: true }
+# end::volumes[]

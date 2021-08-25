@@ -1,0 +1,85 @@
+:title-separator: {sp}:
+= SymCPS Guide : JanusGraph Client
+:doctype: article
+:revnumber: 1.0
+:revdate: 2020-09-01
+:revremark: The first incarnation of {doctitle}
+:version-label!:
+:description: Notes for designers, decisions made and instructions.
+:keywords: graph tinkerpop gremlin metalab mesomodel
+:graphscript: ../script/
+:sectnums:
+:toc:
+
+
+Starting the client via docker. (In a separate terminal.)
+[source,powershell]
+----
+include::{graphscript}/start-jg-client.ps1[tag=compose-run]
+----
+
+There are alternate versions of the client script.
+One to initialize the database with a graph.
+[source,powershell]
+----
+include::{graphscript}/start-jg-client-init.ps1[tag=initialize]
+----
+
+## Load Some Data
+
+[source,gremlin]
+----
+:remote connect tinkerpop.server conf/remote.yaml session
+:remote console
+g.io('/opt/janusgraph/corpus/uuv_cl.graphml').with(IO.reader, IO.graphml).read().iterate()
+:remote close
+----
+
+## Dynamic Graph Management
+
+* https://docs.janusgraph.org/basics/configured-graph-factory/
+* https://docs.janusgraph.org/index-management/index-lifecycle/
+
+[source,gremlin]
+----
+:remote connect tinkerpop.server conf/remote.yaml session
+:remote console
+tcm = new HashMap();
+tcm.put("storage.backend", "cql");
+tcm.put("storage.hostname", "jce-cql");
+tcm.put("index.search.backend", "elasticsearch");
+tcm.put("index.search.hostname", "jce-es");
+ConfiguredGraphFactory.removeTemplateConfiguration()
+ConfiguredGraphFactory.createTemplateConfiguration(new MapConfiguration(tcm));
+graph1 = ConfiguredGraphFactory.create("graph1");
+g1 = graph1.traversal()
+----
+
+## Dynamic Graph Removal
+
+* https://docs.janusgraph.org/basics/configured-graph-factory/
+
+Indices can be created dynamically from the gremlin console
+Here is an example.
+[source,groovy]
+----
+ConfiguredGraphFactory.removeConfiguration("graph1");
+----
+
+
+
+## Dynamic Index Creation
+
+* https://docs.janusgraph.org/index-management/index-performance/
+
+Indices can be created dynamically from the gremlin console
+Here is an example.
+[source,groovy]
+----
+graph1.tx().rollback()
+mgmt = graph1.openManagement()
+namePk = mgmt.getPropertyKey('name')
+mgmt.buildIndex('byNameComposite', Vertex.class).addKey(namePk).buildCompositeIndex()
+mgmt.commit()
+ManagementSystem.awaitGraphIndexStatus(graph1, 'byNameCompsite').call()
+----

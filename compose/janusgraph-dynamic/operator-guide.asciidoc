@@ -1,0 +1,147 @@
+:title-separator: {sp}:
+= SymCPS Guide : JanusGraph Dynamic Server
+:doctype: article
+:revnumber: 1.0
+:revdate: 2020-09-01
+:revremark: The first incarnation of {doctitle}
+:version-label!:
+:description: Notes for designers, decisions made and instructions.
+:keywords: graph tinkerpop gremlin metalab mesomodel
+:graphscript: ../script/
+:sectnums:
+:toc:
+
+Here is the command for firing up the janusgraph server.
+[source,powershell]
+----
+docker compose up --build --force-recreate
+----
+
+## Customization
+
+It may be that you are not satisfied with the configuration files.
+You may need to fiddle about a bit to get the gremlin-server.yaml file to get what you want.
+The yq tool which performs these updates gets its instructions from environment variables.
+
+[source,powershell]
+----
+yq.ps1 -Command eval -FilePath ../janusgraph-docker2/conf/gremlin-server.yaml
+----
+[source,text]
+----
+cmdlet yq.ps1 at command pipeline position 1
+Supply values for the following parameters:
+Filter: .serializers[] |= select(.className == "org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0" and .config.ioRegistries) .config.ioRegistries += ["org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3d0"]
+----
+
+Here is a filter which sets a groovy configuration file.
+[source,text]
+----
+.scriptEngines.gremlin-groovy.plugins.["org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"].files += "/etc/opt/janusgraph/mgmtGraph.groovy"
+----
+
+## JanusGraph Configuration
+
+The janusgraph environment variables can be used to customize the JanusGraph server.
+Application of the environment variables are in sorted order.
+<action-name>s beginning with '_' are reserved for the '../Dockerfile'.
+The <action-name>s are evaluated are in sort order,
+other than that the names have no special meaning.
+This causes <action-name>s beginning with upper case to be evaluated
+before those specified in the Dockerfile and those beginning with lower case
+to be evaluated after.
+In general lower case should be preferred.
+
+The `JG_SHOW` variable is a list of various objects we wish to show.
+The following objects are supported:
+* `env` : the active environment
+* `server` : the single gremlin server configuration (yaml)
+* `graphs` : all the janusgraph graph configurations (properties)
+* `scripts` : all the scripts (groovy)
+
+### Gremlin Server
+
+* `gremlin-server.yaml`
+* GREMLIN__<action-name>
+
+There is a single `gremlin-server.yaml`.
+Its schema is defined here https://docs.janusgraph.org/basics/server/.
+Note::: The double underscore after "GREMLIN_SERVER" is critical.
+The actions are applied in sorted order based on the 'action-name'.
+
+* https://docs.janusgraph.org/basics/server/
+
+### Graph Configuration
+
+* `janusgraph-graph.properties`
+* JG__<graph-name>_<action-name>
+
+An important section of the `gremlin-server.yaml` is the `.graphs` section.
+It is here that the graphs are defined, named, and configured.
+e.g. for graph named `foo`.
+[source,yaml]
+----
+GREMLIN__defaultGraph: '.graphs.foo = "/etc/opt/janusgraph/janusgraph-foo.properties"'
+----
+This variable defines a default graph named `foo`.
+The configuration of which is expected to be found in `/etc/opt/janusgraph/janusgraph-foo.properties`.
+This does not create the configuration file, but only requires it.
+In order to construct the properties `janusgraph-foo.properties` file at least
+one JG__foo_<action-name> property is required.
+
+Note::: The double underscore after "JG_PROPS" is critical.
+The actions are applied in sorted order based on the 'action-name'.
+
+* https://docs.janusgraph.org/basics/example-config/
+* https://docs.janusgraph.org/basics/configuration-reference/
+
+[source,yaml]
+----
+JG__foo_storageHostname: 'storage.hostname=jce-cql'
+----
+This will cause the `/etc/opt/janusgraph/janusgraph-foo.properties` file to be generated (if it does not exist).
+The 'storage.hostname=jce-cql' property to be set / created.
+
+[[gremlin-groovy,groovy script variable]]
+### Gremlin Script
+
+* `script.groovy`
+* GREMLIN_GROOVY__<script-name>
+
+Suppose we wish to create a script to construct a traversal object for the `foo` graph we requested.
+We need to inform the server the script is present.
+[source,yaml]
+----
+GREMLIN__mgmtGraphTraversal: >-
+  .scriptEngines.gremlin-groovy.plugins.["org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"]
+    .files = ["scripts/empty-sample.groovy", "/etc/opt/janusgraph/baz.groovy"]
+----
+
+We need to provide the content of the new `baz` script.
+[source,yaml]
+----
+GREMLIN_GROOVY__baz: |
+   def globals = [:]
+   globals << [gf : foo.traversal()]
+----
+This causes `/etc/opt/janusgraph/baz.groovy` file to be created with the value of the variable as content.
+
+## Index Creation
+
+https://docs.janusgraph.org/index-management/index-performance/
+
+Indices can be created using the <<gremlin-groovy>> approach.
+Here is an example.
+[source,yaml]
+----
+GREMLIN_GROOVY__fooIndex: |
+    foo.tx().rollback()
+    mgmt = foo.openManagement()
+    namePk = mgmt.getPropertyKey('name')
+    mgmt.buildIndex('byNameComposite', Vertex.class).addKey(namePk).buildCompositeIndex()
+    mgmt.commit()
+    ManagementSystem.awaitGraphIndexStatus(foo, 'byNameCompsite').call()
+----
+
+
+

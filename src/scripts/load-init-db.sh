@@ -15,23 +15,23 @@
 # limitations under the License.
 
 # exit early if directory is empty
-IS_EMPTY=$(ls -A -- "${JANUS_INIT_DB_DIR}")
+IS_EMPTY=$(ls -A -- "${JG_INIT_DB_DIR}")
 if [[ -z "$IS_EMPTY" ]]
 then
   exit 0
 fi
 
 # wait for JanusGraph Server
-if [ -n "${JANUS_SERVER_TIMEOUT:-}" ]
+if [ -n "${JG_SERVER_TIMEOUT:-}" ]
 then
-  timeout "${JANUS_SERVER_TIMEOUT}s" bash -c \
+  timeout "${JG_SERVER_TIMEOUT}s" bash -c \
   "until true &>/dev/null </dev/tcp/127.0.0.1/8182; do echo \"waiting for JanusGraph Server...\"; sleep 5; done"
 fi
 
-for f in "${JANUS_INIT_DB_DIR}"/*
+for f in "${JG_INIT_DB_DIR}"/*
 do
   case "$f" in
-    *.groovy) echo "$0: running $f"; "${JANUS_HOME}/bin/gremlin.sh" -e "$f"; echo ;;
+    *.groovy) echo "$0: running $f"; "${JG_HOME}/bin/gremlin.sh" -e "$f"; echo ;;
     *)        echo "$0: ignoring $f" ;;
   esac
   echo

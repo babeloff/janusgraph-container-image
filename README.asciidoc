@@ -10,7 +10,6 @@
 :source-highlighter: rouge
 :icons: font
 :docinfo: private
-:graphquery: ../query/groovy
 :graphscript: ../script
 :sectnums:
 :toc:

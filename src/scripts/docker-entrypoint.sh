@@ -14,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GREMLIN_YAML="${JANUS_CONFIG_DIR}/gremlin-server.yaml"
-JANUS_YAML="${JANUS_CONFIG_DIR}/janusgraph.yaml"
+GREMLIN_YAML="${JG_CONFIG_DIR}/gremlin-server.yaml"
+JG_YAML="${JG_CONFIG_DIR}/janusgraph.yaml"
 
 if [ "$1" == 'janusgraph' ]
 then
   if [ "$(id -u)" == "0" ]
   then
     echo 'starting entry point as root; stepping down to run as "janusgraph" user'
-    mkdir -p "${JANUS_DATA_DIR}" "${JANUS_CONFIG_DIR}"
-    chown -R janusgraph:janusgraph "${JANUS_DATA_DIR}" "${JANUS_CONFIG_DIR}"
-    chmod 700 "${JANUS_DATA_DIR}" "${JANUS_CONFIG_DIR}"
+    mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
+    chown -R janusgraph:janusgraph "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
+    chmod 700 "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
     exec chroot --skip-chdir --userspec janusgraph:janusgraph / "${BASH_SOURCE[0]}" "$@"
   fi
@@ -33,9 +33,9 @@ fi
 echo 'running as non-root user ' "$(id -un)"
 if [ "$1" == 'janusgraph' ]
 then
-  mkdir -p "${JANUS_DATA_DIR}" "${JANUS_CONFIG_DIR}"
+  mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
-  GREMLIN_YAML_SRC="conf/gremlin-server/${GREMLIN_SERVER_TEMPLATE:-gremlin-server}.yaml"
+  GREMLIN_YAML_SRC="conf/gremlin-server/${GREMLIN_TEMPLATE:-gremlin-server}.yaml"
   if cp "${GREMLIN_YAML_SRC}" "${GREMLIN_YAML}"
   then
     echo 'copied ' "${GREMLIN_YAML_SRC}"
@@ -44,18 +44,18 @@ then
     ls "conf/gremlin-server/"
   fi
 
-  JANUS_YAML_SRC="conf/gremlin-server/${JANUS_TEMPLATE:-janusgraph}.yaml"
-  if cp "${JANUS_YAML_SRC}" "${JANUS_YAML}"
+  JG_YAML_SRC="conf/gremlin-server/${JG_TEMPLATE:-janusgraph}.yaml"
+  if cp "${JG_YAML_SRC}" "${JG_YAML}"
   then
-    echo 'copied ' "${JANUS_YAML_SRC}"
+    echo 'copied ' "${JG_YAML_SRC}"
   else
-    echo 'failed to copy ' "${JANUS_YAML_SRC}"
+    echo 'failed to copy ' "${JG_YAML_SRC}"
     ls "conf/gremlin-server/"
   fi
 
-  chown -R "$(id -u):$(id -g)" "${JANUS_DATA_DIR}" "${JANUS_CONFIG_DIR}"
-  chmod 700 "${JANUS_DATA_DIR}" "${JANUS_CONFIG_DIR}"
-  chmod -R 600 "${JANUS_CONFIG_DIR}"/*
+  chown -R "$(id -u):$(id -g)" "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
+  chmod 700 "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
+  chmod -R 600 "${JG_CONFIG_DIR}"/*
 
   echo 'apply configuration from environment'
   while IFS='=' read -r ENV_KEY
@@ -70,28 +70,28 @@ then
       echo "update gremlin server '$EVAL_END' with '${ENV_VAL}'"
       yq eval "${ENV_VAL}" "${GREMLIN_YAML}" --prettyPrint --inplace
 
-    # JANUS__*
-    elif [[ "${EVAL_END}" =~ JANUS__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
+    # JG__*
+    elif [[ "${EVAL_END}" =~ JG__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
     then
       EVAL_END=${BASH_REMATCH[1]}
       EVAL_KEY=${BASH_REMATCH[2]}
 
-      JANUS_CFG_TGT="${JANUS_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.yaml"
-      JANUS_PROPS_TGT="${JANUS_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.properties"
-      if ! -f "${JANUS_CFG_TGT}"
+      JG_CFG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.yaml"
+      JG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.properties"
+      if ! -f "${JG_CFG_TGT}"
       then
-        cp "${JANUS_YAML}" "${JANUS_CFG_TGT}"
+        cp "${JG_YAML}" "${JG_CFG_TGT}"
       fi
       echo "update graph back-end '$EVAL_END' and property eval '$ENV_VAL'"
-      yq eval "${ENV_VAL}" "${JANUS_CFG_TGT}" --prettyPrint --inplace
-      yq eval --outputformat=props "${JANUS_CFG_TGT}" > "${JANUS_PROPS_TGT}"
+      yq eval "${ENV_VAL}" "${JG_CFG_TGT}" --prettyPrint --inplace
+      yq eval --outputformat=props "${JG_CFG_TGT}" > "${JG_TGT}"
 
     # GREMLIN_GROOVY__*
     elif [[ "${EVAL_END}" =~ GREMLIN_GROOVY__([[:alnum:]_]+) ]]
     then
       EVAL_END=${BASH_REMATCH[1]}
       echo 'define gremlin script ' "$EVAL_END" ' with ' "${env_var_val}"
-      echo "${env_var_val}" > "${JANUS_CONFIG_DIR}/${EVAL_END}.groovy"
+      echo "${env_var_val}" > "${JG_CONFIG_DIR}/${EVAL_END}.groovy"
 
     # other environment parameters that we are not concerned about
     else
@@ -110,10 +110,10 @@ then
       ;;
      server | config)
       echo '== GREMLIN SERVER ==============================='
-      yq eval --prettyPrint '... comments=""' "${JANUS_CONFIG_DIR}/gremlin-server.yaml"
+      yq eval --prettyPrint '... comments=""' "${JG_CONFIG_DIR}/gremlin-server.yaml"
       ;;
      graph | graphs)
-      find "${JANUS_CONFIG_DIR}" -type f -name '*.properties' | while read -r configFile
+      find "${JG_CONFIG_DIR}" -type f -name '*.properties' | while read -r configFile
       do
         echo '== PROPERTIES ==================================='
         echo "- file: $configFile "
@@ -124,7 +124,7 @@ then
       done
       ;;
      script | scripts | groovy)
-      find "${JANUS_CONFIG_DIR}" -type f -name '*.groovy' | while read -r configFile
+      find "${JG_CONFIG_DIR}" -type f -name '*.groovy' | while read -r configFile
       do
         echo '== GROOVY SCRIPTS ================================'
         echo "- file: $configFile "
@@ -141,23 +141,23 @@ then
   case "${JG_ACTION:-run}" in
    run)
     echo '==================================================='
-    echo 'running and awaiting storage <' "${JANUS_STORAGE_TIMEOUT}"
-    if [ -n "${JANUS_STORAGE_TIMEOUT:-}" ]
+    echo 'running and awaiting storage <' "${JG_STORAGE_TIMEOUT}"
+    if [ -n "${JG_STORAGE_TIMEOUT:-}" ]
     then
-      yq eval '.graphs' "${GREMLIN_YAML}" | while IFS=: read -r JANUS_GRAPH_NAME JANUS_PROPS_FILE
+      yq eval '.graphs' "${GREMLIN_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
         F="$(mktemp --suffix .groovy)"
-        echo 'graph = JanusGraphFactory.open(' "${JANUS_PROPS_FILE}" ')' > "$F"
-        echo 'waiting for graph database : ' "${JANUS_GRAPH_NAME}"
-        timeout "${JANUS_STORAGE_TIMEOUT}s" bash -c \
-          "until bin/gremlin.sh -e \"$F\" > /dev/null 2>&1; do echo \"waiting for storage: \"${JANUS_GRAPH_NAME}\"...\"; sleep 5; done"
+        echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$F"
+        echo 'waiting for graph database : ' "${JG_GRAPH_NAME}"
+        timeout "${JG_STORAGE_TIMEOUT}s" bash -c \
+          "until bin/gremlin.sh -e \"$F\" > /dev/null 2>&1; do echo \"waiting for storage: \"${JG_GRAPH_NAME}\"...\"; sleep 5; done"
         rm -f "$F"
       done
     else
       sleep 60
     fi
     /usr/local/bin/load-init-db.sh &
-    exec "${JANUS_HOME}/bin/gremlin-server.sh" "${GREMLIN_YAML}"
+    exec "${JG_HOME}/bin/gremlin-server.sh" "${GREMLIN_YAML}"
     ;;
    *)
     echo "action unknown ${JG_ACTION} ; fail"
@@ -168,7 +168,7 @@ fi
 if [ -n "${GREMLIN_REMOTE_HOSTS:-}" ]
 then
   echo 'override hosts for remote connections with Gremlin Console'
-  sed -i "s/hosts\s*:.*/hosts: [$GREMLIN_REMOTE_HOSTS]/" "${JANUS_HOME}/conf/remote.yaml"
+  sed -i "s/hosts\s*:.*/hosts: [$GREMLIN_REMOTE_HOSTS]/" "${JG_HOME}/conf/remote.yaml"
 fi
 
 echo 'executing ' "$@"
