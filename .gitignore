@@ -7,3 +7,5 @@
 !gradle-wrapper.jar
 gradle-app.setting
 
+# Intermediate
+build/

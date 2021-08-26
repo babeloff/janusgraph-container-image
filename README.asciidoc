@@ -1,4 +1,4 @@
-= JanusGraph Docker image : M2
+= JanusGraph Docker Image
 :doctype: article
 :revnumber: 1.0
 :revdate: 2020-09-01
