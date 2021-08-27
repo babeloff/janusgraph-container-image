@@ -16,5 +16,6 @@ dependencyResolutionManagement {
     }
 }
 
-include("docker-image").
+include(":janusgraph2")
 include(":docker-compose:janusgraph-client")
+include(":docker-compose:janusgraph-dynamic")

@@ -73,7 +73,7 @@ Start a JanusGraph Server instance using link:docker-compose.yml[`docker-compose
 
 [source,bash]
 ----
-docker-compose -f docker-compose.yml up
+docker-compose -f docker-compose.yaml up
 ----
 
 Start a JanusGraph container running Gremlin Console in the same network using
@@ -81,7 +81,7 @@ link:docker-compose.yml[`docker-compose.yml`]:
 
 [source,bash]
 ----
-docker-compose -f docker-compose.yml run --rm \
+docker-compose -f docker-compose.yaml run --rm \
     -e GREMLIN_REMOTE_HOSTS#janusgraph janusgraph ./bin/gremlin.sh
 ----
 

@@ -6,7 +6,7 @@ FROM openjdk:8-jre-slim-buster as builder
 
 
 ARG JG_VERSION=0.5.3
-ARG YQ_VERSION=4.9.3
+ARG YQ_VERSION=4.12.1
 ENV JG_VERSION=${JG_VERSION}
 ENV JG_HOME=/opt/janusgraph
 
@@ -16,6 +16,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN /usr/bin/apt-get update -y
 RUN /usr/bin/apt-get install -y gpg unzip curl dos2unix
 RUN /usr/bin/curl -fSL https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 -o yq
+RUN /bin/chmod 755 /opt/yq
 RUN /usr/bin/curl -fSL https://repo1.maven.org/maven2/io/codearte/props2yaml/props2yaml/0.5/props2yaml-0.5-jar-with-dependencies.jar -o props2yaml.jar
 RUN /usr/bin/curl -fSL https://github.com/JanusGraph/janusgraph/releases/download/v${JG_VERSION}/janusgraph-${JG_VERSION}.zip -o janusgraph.zip
 RUN /usr/bin/curl -fSL https://github.com/JanusGraph/janusgraph/releases/download/v${JG_VERSION}/janusgraph-${JG_VERSION}.zip.asc -o janusgraph.zip.asc
@@ -36,8 +37,11 @@ RUN /bin/rm -rf /var/lib/apt/lists/*
 COPY conf ${JG_HOME}/conf/custom-server/
 COPY scripts/remote-connect.gremlin ${JG_HOME}/scripts/
 
+RUN find ${JG_HOME} -name '*.yaml' -print0  \
+  | xargs --null sh -c 'for arg; do /opt/yq eval --prettyPrint --inplace "${arg}"; done'
+
 RUN find ${JG_HOME} -name 'janusgraph-*.properties' -print0  \
-    | xargs --null sh -c 'for arg; do java -jar /opt/props2yaml.jar "$arg" > "${arg%.properties}.yaml"; /bin/rm "$arg"; done'
+  | xargs --null sh -c 'for arg; do java -jar /opt/props2yaml.jar "$arg" > "${arg%.properties}.yaml"; /bin/rm "$arg"; done'
 
 # Next build stage
 FROM openjdk:8-jre-slim-buster as image

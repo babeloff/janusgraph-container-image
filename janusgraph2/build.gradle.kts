@@ -34,10 +34,9 @@ docker {
             }
     }
     images {
+        // project image
         janusgraph2 {
-            setupJvmApp(org.jetbrains.gradle.plugins.docker.JvmBaseImages.OpenJDK11Slim)
-        }
-        register("janusgraph2") {
+//            setupJvmApp(org.jetbrains.gradle.plugins.docker.JvmBaseImages.OpenJDK11Slim)
             files {
                 from(file("Dockerfile"))
                 from(file("src"))
@@ -46,34 +45,35 @@ docker {
             imageName = "janusgraph2" // default
             imageVersion = project.version.toString() // default
         }
+        register("janusgraph3") {
+        }
     }
 }
 
 tasks {
     val containerName = "janusgraph2"
 
-    named<org.jetbrains.gradle.plugins.docker.tasks.DockerExecBuild>("dockerDockerImageBuild") {
-        val foo = this
+    task<Exec>("stopJanusgraph2") {
+        group = "application"
+        executable = "docker"
+        args(listOf(
+            "stop",
+            containerName))
     }
-//    task<Exec>("stopImage") {
-//        group = "application"
-//        executable = "docker"
-//        args(listOf("stop", containerName))
-//    }
 
-//    task<Exec>("runImage") {
-//        dependsOn("janusgraph2")
-//        executable = "docker"
-//        group = "application"
-//        args(listOf(
-//            "run",
-//            "-d",
-//            "-p",
-//            "8080:8080",
-//            "--name",
-//            containerName,
-//            docker.images["janusgraph2"].imageNameWithTag
-//        ))
-//    }
+    task<Exec>("runJanusgraph2") {
+        dependsOn("dockerJanusgraph2Build")
+        executable = "docker"
+        group = "application"
+        args(listOf(
+            "run",
+            "-d",
+            "-p",
+            "8080:8080",
+            "--name",
+            containerName,
+            docker.images["janusgraph2"].imageNameWithTag
+        ))
+    }
 }
 

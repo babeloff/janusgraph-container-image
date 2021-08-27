@@ -35,7 +35,7 @@ if [ "$1" == 'janusgraph' ]
 then
   mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
-  GREMLIN_YAML_SRC="conf/gremlin-server/${GREMLIN_TEMPLATE:-gremlin-server}.yaml"
+  GREMLIN_YAML_SRC=$(realpath "conf/gremlin-server/${GREMLIN_TEMPLATE:-gremlin-server}.yaml")
   if cp "${GREMLIN_YAML_SRC}" "${GREMLIN_YAML}"
   then
     echo 'copied ' "${GREMLIN_YAML_SRC}"
@@ -44,7 +44,7 @@ then
     ls "conf/gremlin-server/"
   fi
 
-  JG_YAML_SRC="conf/gremlin-server/${JG_TEMPLATE:-janusgraph}.yaml"
+  JG_YAML_SRC=$(realpath "conf/gremlin-server/${JG_TEMPLATE:-janusgraph}.yaml")
   if cp "${JG_YAML_SRC}" "${JG_YAML}"
   then
     echo 'copied ' "${JG_YAML_SRC}"
@@ -63,35 +63,39 @@ then
     ENV_VAL="${!ENV_KEY}"
 
     # GREMLIN__*
-    if [[ "${EVAL_END}" =~ GREMLIN__([[:alnum:]_]+) ]]
+    if [[ "${ENV_KEY}" =~ GREMLIN__([[:alnum:]_]+) ]]
     then
-      EVAL_END=${BASH_REMATCH[1]}
-      EVAL_KEY=${ENV_VAL}
-      echo "update gremlin server '$EVAL_END' with '${ENV_VAL}'"
-      yq eval "${ENV_VAL}" "${GREMLIN_YAML}" --prettyPrint --inplace
+      EVAL_INDEX="${BASH_REMATCH[1]}"
+      EVAL_CMD="$ENV_VAL"
+
+      echo "update gremlin server '${EVAL_INDEX}' with '${EVAL_CMD}'"
+      yq eval "${EVAL_CMD}" "${GREMLIN_YAML}" --prettyPrint --inplace
 
     # JG__*
-    elif [[ "${EVAL_END}" =~ JG__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${env_var_val} ]]
+    elif [[ "${ENV_KEY}" =~ JG__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${ENV_VAL} ]]
     then
       EVAL_END=${BASH_REMATCH[1]}
-      EVAL_KEY=${BASH_REMATCH[2]}
+      EVAL_INDEX=${BASH_REMATCH[2]}
+      EVAL_CMD="$ENV_VAL"
 
-      JG_CFG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.yaml"
-      JG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}}.properties"
+      JG_CFG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}.yaml"
+      JG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}.properties"
       if ! -f "${JG_CFG_TGT}"
       then
         cp "${JG_YAML}" "${JG_CFG_TGT}"
       fi
       echo "update graph back-end '$EVAL_END' and property eval '$ENV_VAL'"
-      yq eval "${ENV_VAL}" "${JG_CFG_TGT}" --prettyPrint --inplace
-      yq eval --outputformat=props "${JG_CFG_TGT}" > "${JG_TGT}"
+      yq eval "${EVAL_CMD}" "${JG_CFG_TGT}" --prettyPrint --inplace
+      yq eval --output-format props "${JG_CFG_TGT}" > "${JG_TGT}"
 
     # GREMLIN_GROOVY__*
-    elif [[ "${EVAL_END}" =~ GREMLIN_GROOVY__([[:alnum:]_]+) ]]
+    elif [[ "${ENV_KEY}" =~ GREMLIN_GROOVY__([[:alnum:]_]+) ]]
     then
-      EVAL_END=${BASH_REMATCH[1]}
-      echo 'define gremlin script ' "$EVAL_END" ' with ' "${env_var_val}"
-      echo "${env_var_val}" > "${JG_CONFIG_DIR}/${EVAL_END}.groovy"
+      SCRIPT_NAME=${BASH_REMATCH[1]}
+      SCRIPT_CONTENT="$ENV_VAL"
+
+      echo "create gremlin script '$SCRIPT_NAME' with '$SCRIPT_CONTENT'"
+      echo "${SCRIPT_CONTENT}" > "${JG_CONFIG_DIR}/${SCRIPT_NAME}.groovy"
 
     # other environment parameters that we are not concerned about
     else

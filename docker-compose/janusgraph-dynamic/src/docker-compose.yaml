@@ -32,7 +32,7 @@ services:
     labels:
       edu.vanderbilt.isis.lab: "mesolab"
     #    image: docker.io/janusgraph/janusgraph:0.5.3
-    build: ../janusgraph-docker2
+    image: "${dockerImage}:${dockerImageVersion}"
     container_name: jce-jg
     depends_on:
       - cassandra

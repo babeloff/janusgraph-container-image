@@ -20,7 +20,7 @@ services:
   jg-client:
     labels:
       edu.vanderbilt.isis.lab: "mesolab"
-    image: docker.io/babeloff/janusgraph:latest
+    image: ${dockerImage}
     command:
       - "./bin/gremlin.sh"
     container_name: jg-client
