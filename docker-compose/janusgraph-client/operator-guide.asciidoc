@@ -31,7 +31,7 @@ include::{graphscript}/start-jg-client-init.ps1[tag=initialize]
 ----
 :remote connect tinkerpop.server conf/remote.yaml session
 :remote console
-g.io('/opt/janusgraph/corpus/uuv_cl.graphml').with(IO.reader, IO.graphml).read().iterate()
+g.io('/opt/janusgraph/corpus/sample.graphml').with(IO.reader, IO.graphml).read().iterate()
 :remote close
 ----
 

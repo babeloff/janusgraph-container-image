@@ -6,8 +6,7 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        id("com.palantir.docker") version "0.28.0"
-        id("com.palantir.docker-run") version "0.28.0"
+        id("org.jetbrains.gradle.docker") version "1.1.6"
     }
 }
 
@@ -17,4 +16,5 @@ dependencyResolutionManagement {
     }
 }
 
-include("docker-image")
+include("docker-image").
+include(":docker-compose:janusgraph-client")
