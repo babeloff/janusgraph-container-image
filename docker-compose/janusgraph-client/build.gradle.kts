@@ -9,15 +9,7 @@ plugins {
 
 version = "0.5.3"
 
-//dependencies {
-//    docker (project(":docker-image"))
-//}
-
 tasks {
-
-    named<Delete>("clean") {
-//        delete.add("build")
-    }
 
     task<Copy>("configureJanusgraph2Client") {
         group = "compose"
@@ -25,7 +17,9 @@ tasks {
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 //        expand("dockerImage" to "docker.io/babeloff/janusgraph2:latest")
-        expand("dockerImage" to "janusgraph2:latest")
+        expand(
+            "dockerImage" to "janusgraph2",
+            "dockerImageVersion" to "0.5.3")
     }
 
     task<Exec>("downJanusgraph2Client") {

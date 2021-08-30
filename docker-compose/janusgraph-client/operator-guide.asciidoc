@@ -1,5 +1,5 @@
 :title-separator: {sp}:
-= SymCPS Guide : JanusGraph Client
+= Operator Guide : JanusGraph Client
 :doctype: article
 :revnumber: 1.0
 :revdate: 2020-09-01

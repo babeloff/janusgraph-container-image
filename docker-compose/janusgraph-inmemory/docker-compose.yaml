@@ -17,9 +17,8 @@ version: "3"
 services:
   janusgraph:
     labels:
-      edu.vanderbilt.isis.lab: "mesolab"
-    #    image: docker.io/janusgraph/janusgraph:0.5.3
-    build: ../janusgraph-docker2
+      sponsor: "babeloff"
+    image: "${dockerImage}:${dockerImageVersion}"
     container_name: janusgraph-default
     ports:
       - "8182:8182"

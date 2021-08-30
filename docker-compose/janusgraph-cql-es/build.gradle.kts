@@ -11,7 +11,7 @@ version = "0.5.3"
 
 tasks {
 
-    task<Copy>("configureJanusgraph2DynamicServer") {
+    task<Copy>("configureJanusgraph2CqlEsServer") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
@@ -22,7 +22,7 @@ tasks {
             "dockerImageVersion" to "0.5.3")
     }
 
-    task<Exec>("downJanusgraph2DynamicServer") {
+    task<Exec>("downJanusgraph2CqlEsServer") {
         logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
@@ -34,7 +34,7 @@ tasks {
         ))
     }
 
-    task<Exec>("upJanusgraph2DynamicServer") {
+    task<Exec>("upJanusgraph2CqlEsServer") {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
             ":docker-compose:dockerCreateJGServerVolumes")

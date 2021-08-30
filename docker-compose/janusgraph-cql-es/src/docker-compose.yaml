@@ -30,8 +30,8 @@ services:
   # tag::janusgraph[]
   janusgraph:
     labels:
-      edu.vanderbilt.isis.lab: "mesolab"
-    #    image: docker.io/janusgraph/janusgraph:0.5.3
+      sponsor: "babeloff"
+    image: "${dockerImage}:${dockerImageVersion}"
     build: ../janusgraph-docker2
     container_name: jce-jg
     depends_on:
@@ -114,7 +114,7 @@ services:
   # tag::cassandra[]
   cassandra:
     labels:
-      edu.vanderbilt.isis.lab: "mesolab"
+      sponsor: "datastax"
     image: cassandra:3
     container_name: "jce-cql"
     environment:
@@ -138,7 +138,7 @@ services:
   # tag::elasticsearch[]
   elasticsearch:
     labels:
-      edu.vanderbilt.isis.lab: "mesolab"
+      sponsor: "elastricsearch"
     image: docker.elastic.co/elasticsearch/elasticsearch:6.6.0
     container_name: jce-es
     environment:

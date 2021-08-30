@@ -19,8 +19,8 @@ services:
   # tag::jg_client[]
   jg-client:
     labels:
-      edu.vanderbilt.isis.lab: "mesolab"
-    image: ${dockerImage}
+      sponsor: "babeloff"
+    image: "${dockerImage}:${dockerImageVersion}"
     command:
       - "./bin/gremlin.sh"
     container_name: jg-client

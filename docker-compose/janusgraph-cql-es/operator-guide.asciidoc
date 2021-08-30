@@ -1,5 +1,5 @@
 :title-separator: {sp}:
-= Operator Guide : JanusGraph Dynamic Server
+= Operator Guide : JanusGraph CQL ES Server
 :doctype: article
 :revnumber: 1.0
 :revdate: 2020-09-01
