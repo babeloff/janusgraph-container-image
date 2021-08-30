@@ -17,9 +17,11 @@
 GREMLIN_YAML="${JG_CONFIG_DIR}/gremlin-server.yaml"
 JG_YAML="${JG_CONFIG_DIR}/janusgraph.yaml"
 
-if [ "$1" == 'janusgraph' ]
+if
+ test "$1" == 'janusgraph'
 then
-  if [ "$(id -u)" == "0" ]
+  if
+   test "$(id -u)" == "0"
   then
     echo 'starting entry point as root; stepping down to run as "janusgraph" user'
     mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
@@ -31,12 +33,14 @@ then
 fi
 
 echo 'running as non-root user ' "$(id -un)"
-if [ "$1" == 'janusgraph' ]
+if
+ test "$1" == 'janusgraph'
 then
   mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
   GREMLIN_YAML_SRC=$(realpath "conf/gremlin-server/${GREMLIN_TEMPLATE:-gremlin-server}.yaml")
-  if cp "${GREMLIN_YAML_SRC}" "${GREMLIN_YAML}"
+  if
+    cp "${GREMLIN_YAML_SRC}" "${GREMLIN_YAML}"
   then
     echo 'copied ' "${GREMLIN_YAML_SRC}"
   else
@@ -45,7 +49,8 @@ then
   fi
 
   JG_YAML_SRC=$(realpath "conf/gremlin-server/${JG_TEMPLATE:-janusgraph}.yaml")
-  if cp "${JG_YAML_SRC}" "${JG_YAML}"
+  if
+    cp "${JG_YAML_SRC}" "${JG_YAML}"
   then
     echo 'copied ' "${JG_YAML_SRC}"
   else
@@ -80,7 +85,8 @@ then
 
       JG_CFG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}.yaml"
       JG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}.properties"
-      if ! -f "${JG_CFG_TGT}"
+      if
+       test ! -f "${JG_CFG_TGT}"
       then
         cp "${JG_YAML}" "${JG_CFG_TGT}"
       fi
@@ -146,7 +152,8 @@ then
    run)
     echo '==================================================='
     echo 'running and awaiting storage <' "${JG_STORAGE_TIMEOUT}"
-    if [ -n "${JG_STORAGE_TIMEOUT:-}" ]
+    if
+     test -n "${JG_STORAGE_TIMEOUT:-}"
     then
       yq eval '.graphs' "${GREMLIN_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
@@ -169,7 +176,8 @@ then
   esac
 fi
 
-if [ -n "${GREMLIN_REMOTE_HOSTS:-}" ]
+if
+ test -n "${GREMLIN_REMOTE_HOSTS:-}"
 then
   echo 'override hosts for remote connections with Gremlin Console'
   sed -i "s/hosts\s*:.*/hosts: [$GREMLIN_REMOTE_HOSTS]/" "${JG_HOME}/conf/remote.yaml"
