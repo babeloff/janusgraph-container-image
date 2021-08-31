@@ -1,9 +1,5 @@
 
 mgmt = graph.openManagement()
-mgmt.printSchema()
-mgmt.commit()
-
-mgmt = graph.openManagement()
 [
         '[]Definition',
         '[]Formula',
@@ -17,7 +13,7 @@ mgmt.commit()
 mgmt = graph.openManagement()
 ['inside', 'root'].forEach {labelName ->
     if (!mgmt.containsEdgeLabel(labelName)) {
-        mgmt.makeEdgeLabel(labelName).multiplicity(org.janusgraph.core.Cardinality.MANY2ONE).make()
+        mgmt.makeEdgeLabel(labelName).multiplicity(org.janusgraph.core.Multiplicity.MANY2ONE).make()
     }
 }
 mgmt.commit()
@@ -29,7 +25,7 @@ mgmt = graph.openManagement()
         'target',
 ].forEach {labelName ->
     if (!mgmt.containsEdgeLabel(labelName)) {
-        mgmt.makeEdgeLabel(labelName).multiplicity(org.janusgraph.core.Cardinality.MULTI).make()
+        mgmt.makeEdgeLabel(labelName).multiplicity(org.janusgraph.core.Multiplicity.MULTI).make()
     }
 }
 mgmt.commit()
@@ -61,4 +57,7 @@ mgmt = graph.openManagement()
 mgmt.commit()
 
 
+mgmt = graph.openManagement()
+mgmt.printSchema()
+mgmt.commit()
 

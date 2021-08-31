@@ -38,11 +38,19 @@ Starting the client via gradle on the command line.
 :remote connect tinkerpop.server conf/remote.yaml session
 ----
 
+## Load a Schema
+
+[source,gremlin]
+----
+:load schema/ensample.groovy
+:load schema/ensample-index.groovy
+----
+
 ## Load Some Data
 
 [source,gremlin]
 ----
-:submit g.io('/opt/janusgraph/corpus/sample.graphml').with(IO.reader, IO.graphml).read().iterate()
+:submit g.io('/opt/janusgraph/corpus/ensample.graphml').with(IO.reader, IO.graphml).read().iterate()
 ----
 
 ## Dynamic Graph Management
