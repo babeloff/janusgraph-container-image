@@ -23,7 +23,7 @@ tasks {
     }
 
     task<Exec>("downJanusgraph2CqlEsServer") {
-        logger.quiet("docker compose up task $path")
+//        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
         args(listOf(
@@ -38,7 +38,7 @@ tasks {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
             ":docker-compose:dockerCreateJGServerVolumes")
-        logger.quiet("docker compose up task $path")
+//        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
         args(listOf(

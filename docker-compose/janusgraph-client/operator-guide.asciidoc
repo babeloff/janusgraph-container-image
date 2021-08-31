@@ -12,27 +12,37 @@
 :toc:
 
 
-Starting the client via docker. (In a separate terminal.)
-[source,powershell]
+Starting the client via gradle on the command line.
+[source,gradle]
 ----
-include::{graphscript}/start-jg-client.ps1[tag=compose-run]
+./gradlew startJanusgraph2Client --console=plain
 ----
+//
+//Starting the client via powershell. (In a separate terminal.)
+//[source,powershell]
+//----
+//include::{graphscript}/start-jg-client.ps1[tag=compose-run]
+//----
+//
+//There are alternate versions of the client script.
+//One to initialize the database with a graph.
+//[source,powershell]
+//----
+//include::{graphscript}/start-jg-client-init.ps1[tag=initialize]
+//----
 
-There are alternate versions of the client script.
-One to initialize the database with a graph.
-[source,powershell]
+## Connect to the Running Server
+
+[source,gremlin]
 ----
-include::{graphscript}/start-jg-client-init.ps1[tag=initialize]
+:remote connect tinkerpop.server conf/remote.yaml session
 ----
 
 ## Load Some Data
 
 [source,gremlin]
 ----
-:remote connect tinkerpop.server conf/remote.yaml session
-:remote console
-g.io('/opt/janusgraph/corpus/sample.graphml').with(IO.reader, IO.graphml).read().iterate()
-:remote close
+:submit g.io('/opt/janusgraph/corpus/sample.graphml').with(IO.reader, IO.graphml).read().iterate()
 ----
 
 ## Dynamic Graph Management
@@ -42,7 +52,6 @@ g.io('/opt/janusgraph/corpus/sample.graphml').with(IO.reader, IO.graphml).read()
 
 [source,gremlin]
 ----
-:remote connect tinkerpop.server conf/remote.yaml session
 :remote console
 tcm = new HashMap();
 tcm.put("storage.backend", "cql");

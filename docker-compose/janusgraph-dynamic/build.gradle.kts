@@ -23,9 +23,10 @@ tasks {
     }
 
     task<Exec>("downJanusgraph2DynamicServer") {
-        logger.quiet("docker compose up task $path")
+//        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
+        environment("COMPOSE_PROJECT_NAME", "janusgraph-dynamic-server")
         args(listOf(
             "compose",
             "-f",
@@ -38,9 +39,10 @@ tasks {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
             ":docker-compose:dockerCreateJGServerVolumes")
-        logger.quiet("docker compose up task $path")
+//        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
+        environment("COMPOSE_PROJECT_NAME", "janusgraph-dynamic-server")
         args(listOf(
             "compose",
             "-f",
