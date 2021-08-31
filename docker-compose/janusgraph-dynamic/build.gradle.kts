@@ -38,6 +38,7 @@ tasks {
     task<Exec>("upJanusgraph2DynamicServer") {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
+            ":configureJanusgraph2DynamicServer",
             ":docker-compose:dockerCreateJGServerVolumes")
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
