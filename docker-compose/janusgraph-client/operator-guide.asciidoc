@@ -36,6 +36,7 @@ Starting the client via gradle on the command line.
 [source,gremlin]
 ----
 :remote connect tinkerpop.server conf/remote.yaml session
+:remote console
 ----
 
 ## Load a Schema
@@ -44,6 +45,7 @@ Starting the client via gradle on the command line.
 ----
 :load schema/ensample.groovy
 :load schema/ensample-index.groovy
+:load schema/ensample-index-create.groovy
 ----
 
 ## Load Some Data

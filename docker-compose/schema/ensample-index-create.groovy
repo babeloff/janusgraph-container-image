@@ -9,6 +9,7 @@
 graph.getOpenTransactions().forEach { tx ->  tx.commit() }
 
 indexList.forEach { ixName, propName, modifier ->
+    println "Build index for = name: ${ixName}, property: ${propName}, modifier: ${modifier}"
     mgmt = graph.openManagement()
     if (mgmt.containsGraphIndex(ixName)) {
         mgmt.commit()
@@ -40,6 +41,8 @@ indexList.forEach { ixName, propName, modifier ->
 /**
  *  Block until the indexes are ENABLED
  */
+graph.getOpenTransactions().forEach { tx ->  tx.commit() }
+
 indexList.forEach { ixName, propName, modifier ->
     mgmt = graph.openManagement()
     report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.ENABLED).call()
@@ -49,17 +52,11 @@ indexList.forEach { ixName, propName, modifier ->
 /**
  *  Reindex each existing data
  */
+graph.getOpenTransactions().forEach { tx ->  tx.commit() }
+
 indexList.forEach { ixName, propName, modifier ->
     mgmt = graph.openManagement()
     ix = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(ix, SchemaAction.REINDEX)
     mgmt.commit()
 }
-
-/**
- * Show the results
- */
-mgmt = graph.openManagement()
-mgmt.printSchema()
-//mgmt.printIndexes()
-mgmt.commit()

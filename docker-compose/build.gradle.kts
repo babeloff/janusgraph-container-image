@@ -29,7 +29,8 @@ tasks {
     }
     register("dockerCreateJGServerVolumes") {
         group = "docker"
-        dependsOn("dockerCreateJGVolumeCorpus",
+        dependsOn(
+            "dockerCreateJGVolumeCorpus",
             "dockerCreateJGVolumeProduct",
             "dockerCreateJGVolumeCql",
             "dockerCreateJGVolumeEs"
@@ -37,12 +38,14 @@ tasks {
     }
     register("dockerCreateJGClientVolumes") {
         group = "docker"
-        dependsOn("dockerCreateJGVolumeScripts",
+        dependsOn(
+            "dockerCreateJGVolumeScript",
             "dockerCreateJGVolumeProduct")
     }
     register("dockerCreateJGVolumes") {
         group = "docker"
-        dependsOn("dockerCreateJGClientVolumes",
+        dependsOn(
+            "dockerCreateJGClientVolumes",
             "dockerCreateJGServerVolumes",
         )
     }
