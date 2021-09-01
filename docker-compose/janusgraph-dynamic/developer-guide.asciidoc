@@ -1,5 +1,5 @@
 :title-separator: {sp}:
-= Operator Guide : JanusGraph Dynamic Server
+= Developer Guide : JanusGraph Dynamic Server
 :doctype: article
 :revnumber: 1.0
 :revdate: 2020-09-01
@@ -23,22 +23,6 @@ It may be that you are not satisfied with the configuration files.
 You may need to fiddle about a bit to get the gremlin-server.yaml file to get what you want.
 The yq tool which performs these updates gets its instructions from environment variables.
 
-[source,powershell]
-----
-yq.ps1 -Command eval -FilePath ../janusgraph-docker2/conf/gremlin-server.yaml
-----
-[source,text]
-----
-cmdlet yq.ps1 at command pipeline position 1
-Supply values for the following parameters:
-Filter: .serializers[] |= select(.className == "org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0" and .config.ioRegistries) .config.ioRegistries += ["org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3d0"]
-----
-
-Here is a filter which sets a groovy configuration file.
-[source,text]
-----
-.scriptEngines.gremlin-groovy.plugins.["org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"].files += "/etc/opt/janusgraph/mgmtGraph.groovy"
-----
 
 ## JanusGraph Configuration
 

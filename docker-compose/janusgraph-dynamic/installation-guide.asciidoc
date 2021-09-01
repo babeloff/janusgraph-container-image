@@ -1,0 +1,248 @@
+:title-separator: {sp}:
+= Installation Guide : JanusGraph Dynamic Server
+:doctype: article
+:revnumber: 1.0
+:revdate: 2020-09-01
+:revremark: The first incarnation of {doctitle}
+:version-label!:
+:description: Notes for designers, decisions made and instructions.
+:keywords: graph tinkerpop gremlin metalab mesomodel
+:graphscript: ../script/
+:sectnums:
+:toc:
+
+[[references]]
+== References
+
+////
+References specific to installation should be given here.
+General references should be in the ../README.asciidoc
+////
+
+[[working-directories]]
+== Prepare Working Directories
+
+=== Specify the Corpus Data
+
+Place the graphml file into a working directory. e.g.
+[source,powershell]
+----
+Copy-Item  -Recurse `
+  ./all-schema.graphml `
+  -Destination  $JG_WIP_DIR
+----
+
+[[install-docker]]
+== Docker
+
+For the most part the system is composed of containers.
+To that end we install Docker.
+
+.Install on Linux
+[source,bash]
+----
+snap install docker --classic
+----
+
+.Install on Windows 10
+[source,powershell]
+----
+choco install docker-desktop
+----
+Make sure it is at least v3.3.0
+
+[NOTE]
+.Docker Error (Windows 10)
+====
+If you receive an error during connection the docker daemon may not be running,
+(see https://success.mirantis.com/article/docker-for-windows-fails-with-a-daemon-not-running-message)
+[source,powershell]
+----
+Net stop com.docker.service
+Net start com.docker.service
+----
+====
+
+[[services]]
+== Services
+
+[[janusgraph-containers]]
+=== JanusGraph
+
+The main data component is the graph database, JanusGraph.
+Typically, we will create docker volumes before starting the containers which use them.
+Some of these volumes will make use of data in our repository,
+others we will want to persist indefinitely.
+The simplest volume driver is the `local` plugin which we use here.
+
+[[janusgraph-volumes]]
+==== Named Volumes
+
+[source,bash powershell]
+----
+docker volume list
+----
+
+The following volumes are used by the JanusGraph containers.
+
+[source,bash powershell]
+----
+include::{graphscript}/create-jg-volumes.ps1[tag=server-volumes]
+----
+Where do these volumes actually consume space?
+[source,bash powershell]
+----
+docker volume inspect jg-corpus-data
+----
+[source,text]
+----
+"Mountpoint": "/var/lib/docker/volumes/jg-graph-data/_data"
+----
+
+ifdef::win10[]
+I prefer to set the docker volume path as an environment variable.
+[source,powershell]
+----
+[System.Environment]::SetEnvironmentVariable('DOCKER_VOL_PATH','\\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes')
+Get-ChildItem Env:DOCKER_VOL_PATH
+----
+
+On Windows 10 the docker-desktop maps `/var/lib/docker/volumes` to `$Env:DOCKER_VOL_PATH`
+as can be seen with the following.
+[source,powershell]
+----
+Get-ChildItem -Path $Env:DOCKER_VOL_PATH -Directory
+----
+endif::win10[]
+
+Populate the corpus data directory as needed.
+The following shows the example graph data in this repository.
+ifdef::win10[]
+[source,powershell]
+----
+Copy-Item -Recurse `
+  ./graph/data/* `
+  -Destination $(Join-Path -Path $Env:DOCKER_VOL_PATH -ChildPath 'jg-corpus-data\_data\')
+----
+endif::win10[]
+ifdef::linux[]
+[source,bash]
+----
+cp -r \
+  ./graph/data/* \
+  '/var/lib/docker/volumes/jg-corpus-data/_data/'
+----
+endif::linux[]
+
+The scripts are run on the JanusGraph client container.
+[source,bash powershell]
+----
+include::{graphscript}/create-jg-volumes.ps1[tag=client-volumes]
+----
+Populate the jg-scripts volume if needed.
+note:: You can do this later.
+ifdef::win10[]
+[source,powershell]
+----
+Copy-Item -Recurse `
+  ./query/groovy/* `
+  -Destination $(Join-Path -Path $Env:DOCKER_VOL_PATH -ChildPath 'jg-scripts\_data\')
+----
+endif::win10[]
+ifdef::linux[]
+[source,bash]
+----
+cp -r \
+  ./query/groovy/* \
+  '/var/lib/docker/volumes/jg-scripts/_data/'
+----
+endif::linux[]
+Copying to and from this volume can be done while the client is running.
+
+[[janusgraph-network]]
+==== Named Networks
+
+Take a look at the existing networks.
+[source,bash powershell]
+----
+docker network list
+----
+
+We want to create a network which clients may use to
+attach to the JanusGraph service.
+
+[source,bash powershell]
+----
+include::{graphscript}/create-jg-networks.ps1[tag=network]
+----
+
+[[janusgraph-service]]
+==== Start the JanusGraph Services
+
+We are now ready to install and start the JanusGraph containers.
+From the `./docker/janusgraph-cql-es/` directory run the following:
+[source,powershell]
+----
+Push-Location ./docker/janusgraph-cql-es/
+----
+Start the service in the background.
+[source,powershell]
+----
+docker compose up --detach
+----
+or the following if you want to run it in the foreground
+[source,powershell]
+----
+docker compose up --build --force-recreate
+----
+
+Ensure that each of jce-jg (JanusGraph), jce-es (ElasticSearch),
+and jce-cq (Cassandra) docker containers have started and are running:
+[source, shell script]
+----
+docker container ls -a
+----
+ifdef::win10
+Note::: On Windows 10 the Docker-Desktop application can be useful.
+endif::win10
+
+If you are unsure that the `jce-jg` services is running properly,
+see the <<troubleshooting-janusgraph, JanusGraph Troubleshooting section>>.
+
+[[janusgraph-client]]
+==== Run a JanusGraph Client
+
+Now a JanusGraph / Gremlin client. (In a separate terminal.)
+
+===== Via Docker
+
+This first script creates a docker container and starts the gremlin console.
+The gremlin console is a groovy REPL with gremlin plugins.
+Within the gremlin console you have access to the full gremlin and groovysh APIs.
+One such command is `:load` with which groovy scripts can be executed.
+
+Fire up the client.
+[source,bash powershell]
+----
+include::{graphscript}/start-jg-client.ps1[tag=compose-run]
+----
+
+The gremlin console may also be run in batch mode.
+This can be useful for running initialization scripts.
+[source,bash powershell]
+----
+include::{graphscript}/start-jg-client-init.ps1[tag=initialize]
+----
+
+This completes the installation of JanusGraph.
+
+===== Via Command Line
+
+It is also possible to connect to the Janusgraph server from a client on the host.
+The client would be started
+
+==== Load Schema
+
+The schema can be created at a few different times.
+
+==== Build Indexes
