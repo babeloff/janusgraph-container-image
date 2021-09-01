@@ -7,13 +7,13 @@
 
 isRegistered = '''
 indexList.forEach { ixName, propName, modifier ->
-    g.tx().commit()
+    graph.tx().commit()
     report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.REGISTERED).call()
     mgmt = graph.openManagement()
     ix = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(ix, SchemaAction.REGISTER_INDEX).get()
     mgmt.commit()
-    g.tx().commit()
+    graph.tx().commit()
 }; "is registered"
 '''
 :submit @isRegistered
@@ -25,11 +25,11 @@ indexList.forEach { ixName, propName, modifier ->
 
 isEnabled = '''
 indexList.forEach { ixName, propName, modifier ->
-    g.tx().commit()
+    graph.tx().commit()
     mgmt = graph.openManagement()
     report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.ENABLED).call()
     mgmt.commit()
-    g.tx().commit()
+    graph.tx().commit()
 }; "is enabled"
 '''
 :submit @isEnabled
@@ -41,12 +41,12 @@ indexList.forEach { ixName, propName, modifier ->
 
 reindex = '''
 indexList.forEach { ixName, propName, modifier ->
-    g.tx().commit()
+    graph.tx().commit()
     mgmt = graph.openManagement()
     ix = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(ix, SchemaAction.REINDEX)
     mgmt.commit()
-    g.tx().commit()
+    graph.tx().commit()
 }; "reindex"
 '''
 :submit @reindex

@@ -40,7 +40,7 @@ Connect to a running server and check the schema.
 [source,gremlin]
 ----
 :remote connect tinkerpop.server conf/remote.yaml session
-:load schema/show.groovysh
+:load schema/00-show.groovysh
 ----
 
 ## Load Schema
@@ -53,16 +53,11 @@ You can check the status of the schema as you go.
 ----
 :load schema/00-show.groovysh
 ----
+Generally you want to create the properties and their global indices first.
+Things just go better when you create the index in the same management
+session as the constraining label (or property for global indices).
 
-### Load the Labels
-[source,gremlin]
-----
-:load schema/10-label-defs.groovysh
-:load schema/20-label-make.groovysh
-----
-
-
-### Index Creation
+### Property Creation
 
 * https://docs.janusgraph.org/index-management/index-performance/
 
@@ -71,8 +66,15 @@ Here is an example.
 
 [source,gremlin]
 ----
-:load schema/11-property-defs.groovysh
-:load schema/21-property-make.groovysh
+:load schema/10-property-defs.groovysh
+:load schema/20-property-make.groovysh
+----
+
+### Load the Labels
+[source,gremlin]
+----
+:load schema/11-label-defs.groovysh
+:load schema/21-label-make.groovysh
 ----
 
 

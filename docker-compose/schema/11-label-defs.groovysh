@@ -2,23 +2,26 @@
 
 defVertexLabels = '''
 defVertexLabels = [
-        '[]Definition',
-        '[]Formula',
+        ['[]Definition', [['byDefinitionName','[]Name']]],
+        ['[]Formula', [['byFormulaName','[]Name']]],
 ]; "define vertex labels"
 '''
 :submit @defVertexLabels
 
 :submit mgmt = graph.openManagement()
 defEdgeLabelsM2O = '''
-defEdgeLabelsM2O = ['inside', 'root']; "make edge labels: many to one"
+defEdgeLabelsM2O = [
+        ['inside', []],
+        ['root', []],
+]; "make edge labels: many to one"
 '''
 :submit @defEdgeLabelsM2O
 
 defEdgeLabelsM2M = '''
 defEdgeLabelsM2M = [
-        'copy',
-        'source',
-        'target',
+        ['copy', []],
+        ['source', []],
+        ['target', []],
 ]; "make edge labels: many to many"
 '''
 :submit @defEdgeLabelsM2M

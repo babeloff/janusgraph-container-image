@@ -1,0 +1,60 @@
+
+:submit mgmt = graph.openManagement()
+makeVertexLabels = '''
+defVertexLabels.forEach {labelName, indices ->
+    if (mgmt.containsVertexLabel(labelName)) {
+        return;
+    }
+    vertexLabel = mgmt.makeVertexLabel(labelName)
+                .make()
+    indices.forEach {ixName, propName ->
+       pname = mgmt.getPropertyKey(propName)
+       mgmt.buildIndex(ixName, Vertex.class)
+           .addKey(pname)
+           .indexOnly(vertexLabel)
+           .buildCompositeIndex()
+    }
+}; "make vertex labels"
+'''
+:submit @makeVertexLabels
+:submit mgmt.commit(); "mgmt commit"
+
+:submit mgmt = graph.openManagement()
+makeEdgeLabelsM2O = '''
+defEdgeLabelsM2O.forEach {labelName, indices ->
+    if (mgmt.containsEdgeLabel(labelName)) {
+        return
+    }
+    edgeLabel = mgmt.makeEdgeLabel(labelName)
+                .multiplicity(org.janusgraph.core.Multiplicity.MANY2ONE)
+                .make()
+    indices.forEach {ixName, propName ->
+       pname = mgmt.getPropertyKey(propName)
+       mgmt.buildIndex(ixName, Vertex.class)
+           .addKey(pname)
+           .indexOnly(edgeLabel)
+           .buildCompositeIndex()
+    }}; "make edge labels: many to one"
+'''
+:submit @makeEdgeLabelsM2O
+:submit mgmt.commit(); "mgmt commit"
+
+:submit mgmt = graph.openManagement()
+makeEdgeLabelsM2M = '''
+defEdgeLabelsM2M.forEach {labelName, indices ->
+    if (mgmt.containsEdgeLabel(labelName)) {
+        return
+    }
+    edgeLabel = mgmt.makeEdgeLabel(labelName)
+                .multiplicity(org.janusgraph.core.Multiplicity.MULTI)
+                .make()
+    indices.forEach {ixName, propName ->
+       pname = mgmt.getPropertyKey(propName)
+       mgmt.buildIndex(ixName, Vertex.class)
+           .addKey(pname) 
+           .indexOnly(edgeLabel)
+           .buildCompositeIndex()
+    }}; "make edge labels: many to many"
+'''
+:submit @makeEdgeLabelsM2M
+:submit mgmt.commit(); "mgmt commit"

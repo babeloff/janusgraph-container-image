@@ -14,7 +14,7 @@ indexList.forEach { ixName, propName, modifier ->
     gindex = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(gindex, SchemaAction.DISABLE_INDEX).get()
     mgmt.commit()
-    g.tx().commit()
+    graph.tx().commit()
 }; "disable index"
 '''
 :submit @disableIndex
@@ -34,12 +34,12 @@ indexList.forEach { ixName, propName, modifier ->
  */; "remove the index comment"
 removeIndex = '''
 indexList.forEach { ixName, propName, modifier ->
-    g.tx().commit()
+    graph.tx().commit()
     mgmt = graph.openManagement()
     ix = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(ix, SchemaAction.REMOVE_INDEX)
     mgmt.commit()
-    g.tx().commit()
+    graph.tx().commit()
 }; "remove the index"
 '''
 :submit @removeIndex
