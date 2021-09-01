@@ -1,0 +1,7 @@
+
+/**
+ * Show the state
+ */; "show state comment"
+:submit mgmt = graph.openManagement()
+:submit mgmt.printSchema()
+:submit mgmt.commit()

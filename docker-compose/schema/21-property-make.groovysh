@@ -1,0 +1,31 @@
+
+:submit mgmt = graph.openManagement()
+makePropKeysBool = '''
+defPropKeysBool.forEach {propName ->
+    if (mgmt.containsPropertyKey(propName)) {
+       return
+    }
+    mgmt.makePropertyKey(propName).dataType(Boolean.class).cardinality(org.janusgraph.core.Cardinality.SINGLE).make()
+}; "make property keys: boolean"
+'''
+:submit @makePropKeysBool
+:submit mgmt.commit(); "mgmt commit"
+
+:submit mgmt = graph.openManagement()
+makePropKeysString = '''
+defPropKeysString.forEach {propName, ixName, modifier ->
+    if (mgmt.containsPropertyKey(propName)) {
+       return
+    }
+    mgmt.makePropertyKey(propName).dataType(String.class).cardinality(org.janusgraph.core.Cardinality.SINGLE).make()
+    if (ixName != null) {
+        pk = mgmt.getPropertyKey(propName) 
+        mgmt.buildIndex ( ixName, Vertex.class ).addKey ( pk ).buildCompositeIndex ( )
+    }
+}; "make property keys: string"
+'''
+:submit @makePropKeysString
+:submit mgmt.commit(); "mgmt commit"
+
+
+

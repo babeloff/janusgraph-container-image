@@ -40,6 +40,7 @@ tasks {
             "-f",
             layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
             "run",
+            "--rm",
             "jg-client"
         ))
     }

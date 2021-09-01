@@ -26,6 +26,7 @@ tasks {
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
+        environment("COMPOSE_PROJECT_NAME", "janusgraph-cql-es-server")
         args(listOf(
             "compose",
             "-f",
@@ -37,10 +38,12 @@ tasks {
     task<Exec>("upJanusgraph2CqlEsServer") {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
+            ":docker-compose:janusgraph-cql-es:configureJanusgraph2CqlEsServer",
             ":docker-compose:dockerCreateJGServerVolumes")
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
+        environment("COMPOSE_PROJECT_NAME", "janusgraph-cql-es-server")
         args(listOf(
             "compose",
             "-f",

@@ -1,5 +1,5 @@
 :title-separator: {sp}:
-= Installation Guide : JanusGraph Dynamic Server
+= Installation Guide : JanusGraph Server with Cassandra Elasticsearch Backend
 :doctype: article
 :revnumber: 1.0
 :revdate: 2020-09-01

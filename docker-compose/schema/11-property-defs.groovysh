@@ -1,0 +1,19 @@
+
+defPropKeysBool = '''
+defPropKeysBool = [
+]; "make property keys: boolean"
+'''
+:submit @defPropKeysBool
+
+defPropKeysString = '''
+defPropKeysString = [
+        ['[]ID', 'id_ix', 'unique'],
+        ['[]Name', 'name_ix', 'dup'],
+        ['_partition', 'partition_ix', 'dup'],
+        ['description', null, null],
+        ['status', null, null],
+]; "make property keys: string"
+'''
+:submit @defPropKeysString
+
+

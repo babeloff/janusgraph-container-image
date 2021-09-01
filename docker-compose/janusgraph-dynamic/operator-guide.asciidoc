@@ -1,0 +1,53 @@
+:title-separator: {sp}:
+= Operator Guide : JanusGraph Server with Dynamic Backend
+:doctype: article
+:revnumber: 1.0
+:revdate: 2020-09-01
+:revremark: The first incarnation of {doctitle}
+:version-label!:
+:description: Notes for designers, decisions made and instructions.
+:keywords: graph tinkerpop gremlin metalab mesomodel
+:graphscript: ../script/
+:sectnums:
+:toc:
+
+This manual extends the
+link:../janusgraph-cql-es/operator-guide.asciidoc[Janusgraph CQL ES Operator Guide].
+
+It provides additional capability for constructing graphs from the janusgraph client.
+So, this manual also extends
+link:../janusgraph-client/operator-guide.asciidoc[Janusgraph Client Operator Guide].
+
+
+## Dynamic Graph Management
+
+* https://docs.janusgraph.org/basics/configured-graph-factory/
+* https://docs.janusgraph.org/index-management/index-lifecycle/
+
+[source,gremlin]
+----
+:remote console
+tcm = new HashMap();
+tcm.put("storage.backend", "cql");
+tcm.put("storage.hostname", "jce-cql");
+tcm.put("index.search.backend", "elasticsearch");
+tcm.put("index.search.hostname", "jce-es");
+ConfiguredGraphFactory.removeTemplateConfiguration()
+ConfiguredGraphFactory.createTemplateConfiguration(new MapConfiguration(tcm));
+graph1 = ConfiguredGraphFactory.create("graph1");
+g1 = graph1.traversal()
+----
+
+## Dynamic Graph Removal
+
+* https://docs.janusgraph.org/basics/configured-graph-factory/
+
+Indices can be created dynamically from the gremlin console
+Here is an example.
+[source,groovy]
+----
+ConfiguredGraphFactory.removeConfiguration("graph1");
+----
+
+
+

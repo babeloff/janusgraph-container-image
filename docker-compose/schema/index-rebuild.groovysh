@@ -1,0 +1,52 @@
+
+
+/**
+ *  Wait for the status of each index to change from INSTALLED to REGISTERED
+ */; "title"
+:submit graph.getOpenTransactions().forEach { tx ->  tx.rollback() }; "quiesce"
+
+isRegistered = '''
+indexList.forEach { ixName, propName, modifier ->
+    g.tx().commit()
+    report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.REGISTERED).call()
+    mgmt = graph.openManagement()
+    ix = mgmt.getGraphIndex(ixName)
+    mgmt.updateIndex(ix, SchemaAction.REGISTER_INDEX).get()
+    mgmt.commit()
+    g.tx().commit()
+}; "is registered"
+'''
+:submit @isRegistered
+
+/**
+ *  Block until the indexes are ENABLED
+ */
+:submit graph.getOpenTransactions().forEach { tx ->  tx.rollback() }; "quiesce"
+
+isEnabled = '''
+indexList.forEach { ixName, propName, modifier ->
+    g.tx().commit()
+    mgmt = graph.openManagement()
+    report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.ENABLED).call()
+    mgmt.commit()
+    g.tx().commit()
+}; "is enabled"
+'''
+:submit @isEnabled
+
+/**
+ *  Reindex each existing data
+ */
+:submit graph.getOpenTransactions().forEach { tx ->  tx.rollback() }; "quiesce"
+
+reindex = '''
+indexList.forEach { ixName, propName, modifier ->
+    g.tx().commit()
+    mgmt = graph.openManagement()
+    ix = mgmt.getGraphIndex(ixName)
+    mgmt.updateIndex(ix, SchemaAction.REINDEX)
+    mgmt.commit()
+    g.tx().commit()
+}; "reindex"
+'''
+:submit @reindex

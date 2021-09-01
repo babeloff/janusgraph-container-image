@@ -12,7 +12,10 @@
 :toc:
 
 
-Starting the client via gradle on the command line.
+The simplest way to connect to the server is via the
+link:https://tinkerpop.apache.org/docs/3.5.1/reference/#gremlin-console[Gremlin Console].
+A gradle task has been provided to assist in making this connection.
+
 [source,gradle]
 ----
 ./gradlew startJanusgraph2Client --console=plain
@@ -33,72 +36,49 @@ Starting the client via gradle on the command line.
 
 ## Connect to the Running Server
 
+Connect to a running server and check the schema.
 [source,gremlin]
 ----
 :remote connect tinkerpop.server conf/remote.yaml session
-:remote console
+:load schema/show.groovysh
 ----
 
-## Load a Schema
+## Load Schema
+
+Loading the schema and indices makes use of
+link:https://javadoc.io/doc/org.janusgraph/janusgraph-core/latest/org/janusgraph/core/schema/JanusGraphManagement.html[Janusgraph Graph Management].
+
+You can check the status of the schema as you go.
+[source,gremlin]
+----
+:load schema/00-show.groovysh
+----
+
+### Load the Labels
+[source,gremlin]
+----
+:load schema/10-label-defs.groovysh
+:load schema/20-label-make.groovysh
+----
+
+
+### Index Creation
+
+* https://docs.janusgraph.org/index-management/index-performance/
+
+Indices may be created from the gremlin console.
+Here is an example.
 
 [source,gremlin]
 ----
-:load schema/ensample.groovy
-:load schema/ensample-index.groovy
-:load schema/ensample-index-create.groovy
+:load schema/11-property-defs.groovysh
+:load schema/21-property-make.groovysh
 ----
+
 
 ## Load Some Data
 
 [source,gremlin]
 ----
 :submit g.io('/opt/janusgraph/corpus/ensample.graphml').with(IO.reader, IO.graphml).read().iterate()
-----
-
-## Dynamic Graph Management
-
-* https://docs.janusgraph.org/basics/configured-graph-factory/
-* https://docs.janusgraph.org/index-management/index-lifecycle/
-
-[source,gremlin]
-----
-:remote console
-tcm = new HashMap();
-tcm.put("storage.backend", "cql");
-tcm.put("storage.hostname", "jce-cql");
-tcm.put("index.search.backend", "elasticsearch");
-tcm.put("index.search.hostname", "jce-es");
-ConfiguredGraphFactory.removeTemplateConfiguration()
-ConfiguredGraphFactory.createTemplateConfiguration(new MapConfiguration(tcm));
-graph1 = ConfiguredGraphFactory.create("graph1");
-g1 = graph1.traversal()
-----
-
-## Dynamic Graph Removal
-
-* https://docs.janusgraph.org/basics/configured-graph-factory/
-
-Indices can be created dynamically from the gremlin console
-Here is an example.
-[source,groovy]
-----
-ConfiguredGraphFactory.removeConfiguration("graph1");
-----
-
-
-
-## Dynamic Index Creation
-
-* https://docs.janusgraph.org/index-management/index-performance/
-
-Indices can be created dynamically from the gremlin console
-Here is an example.
-[source,groovy]
-----
-graph1.tx().rollback()
-mgmt = graph1.openManagement()
-namePk = mgmt.getPropertyKey('name')
-mgmt.buildIndex('byNameComposite', Vertex.class).addKey(namePk).buildCompositeIndex()
-mgmt.commit()
-ManagementSystem.awaitGraphIndexStatus(graph1, 'byNameCompsite').call()
 ----

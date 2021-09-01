@@ -1,14 +1,10 @@
 
 /**
- * https://javadoc.io/doc/org.janusgraph/janusgraph-core/latest/org/janusgraph/core/schema/JanusGraphManagement.html
- */
-
-/**
- *  Make each index
+ *  Remove each index
  *
  *  (ixName, propName, modifier) = indexList[0]
- */
-
+ */; "title"
+disableIndex = '''
 indexList.forEach { ixName, propName, modifier ->
     mgmt = graph.openManagement()
     if (! mgmt.containsGraphIndex(ixName)) {
@@ -18,21 +14,33 @@ indexList.forEach { ixName, propName, modifier ->
     gindex = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(gindex, SchemaAction.DISABLE_INDEX).get()
     mgmt.commit()
-}
+    g.tx().commit()
+}; "disable index"
+'''
+:submit @disableIndex
 
 /**
  *  Wait for the status of each index to change from ENABLED to DISABLED
- */
+ */; "wait for disable comment"
+waitForDisable = '''
 indexList.forEach { ixName, propName, modifier ->
     report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.DISABLED).call()
-}
+}; "wait for disable"
+'''
+:submit @waitForDisable
 
 /**
  *  Remove the index
- */
+ */; "remove the index comment"
+removeIndex = '''
 indexList.forEach { ixName, propName, modifier ->
+    g.tx().commit()
     mgmt = graph.openManagement()
     ix = mgmt.getGraphIndex(ixName)
     mgmt.updateIndex(ix, SchemaAction.REMOVE_INDEX)
     mgmt.commit()
-}
+    g.tx().commit()
+}; "remove the index"
+'''
+:submit @removeIndex
+

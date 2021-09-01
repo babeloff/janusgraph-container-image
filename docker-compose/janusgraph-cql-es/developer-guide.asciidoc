@@ -1,5 +1,5 @@
 :title-separator: {sp}:
-= Developer Guide : JanusGraph Dynamic Server
+= Developer Guide : JanusGraph Server with Cassandra Elasticsearch Backend
 :doctype: article
 :revnumber: 1.0
 :revdate: 2020-09-01
