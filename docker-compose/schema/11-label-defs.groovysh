@@ -8,7 +8,6 @@ defVertexLabels = [
 '''
 :submit @defVertexLabels
 
-:submit mgmt = graph.openManagement()
 defEdgeLabelsM2O = '''
 defEdgeLabelsM2O = [
         ['inside', []],
