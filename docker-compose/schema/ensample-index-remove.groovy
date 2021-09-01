@@ -8,24 +8,24 @@
  *
  *  (ixName, propName, modifier) = indexList[0]
  */
-//
-//indexList.forEach { ixName, propName, modifier ->
-//    mgmt = graph.openManagement()
-//    if (! mgmt.containsGraphIndex(ixName)) {
-//        mgmt.commit()
-//        return;
-//    }
-//    gindex = mgmt.getGraphIndex(ixName)
-//    mgmt.updateIndex(gindex, SchemaAction.DISABLE_INDEX).get()
-//    mgmt.commit()
-//}
-//
-///**
-// *  Wait for the status of each index to change from ENABLED to DISABLED
-// */
-//indexList.forEach { ixName, propName, modifier ->
-//    report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.DISABLED).call()
-//}
+
+indexList.forEach { ixName, propName, modifier ->
+    mgmt = graph.openManagement()
+    if (! mgmt.containsGraphIndex(ixName)) {
+        mgmt.commit()
+        return;
+    }
+    gindex = mgmt.getGraphIndex(ixName)
+    mgmt.updateIndex(gindex, SchemaAction.DISABLE_INDEX).get()
+    mgmt.commit()
+}
+
+/**
+ *  Wait for the status of each index to change from ENABLED to DISABLED
+ */
+indexList.forEach { ixName, propName, modifier ->
+    report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.DISABLED).call()
+}
 
 /**
  *  Remove the index

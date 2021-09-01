@@ -6,6 +6,7 @@
 /**
  *  Make each index
  */
+graph.getOpenTransactions().forEach { tx ->  tx.commit() }
 
 indexList.forEach { ixName, propName, modifier ->
     mgmt = graph.openManagement()
@@ -23,22 +24,16 @@ indexList.forEach { ixName, propName, modifier ->
     mgmt.commit()
 }
 
-graph.tx().commit()
-
 /**
  *  Wait for the status of each index to change from INSTALLED to REGISTERED
  */
+graph.getOpenTransactions().forEach { tx ->  tx.commit() }
+
 indexList.forEach { ixName, propName, modifier ->
     report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.REGISTERED).call()
-}
-
-/**
- *  Reindex each existing data
- */
-indexList.forEach { ixName, propName, modifier ->
     mgmt = graph.openManagement()
     ix = mgmt.getGraphIndex(ixName)
-    mgmt.updateIndex(ix, SchemaAction.REINDEX)
+    mgmt.updateIndex(ix, SchemaAction.REGISTER_INDEX).get()
     mgmt.commit()
 }
 
@@ -48,6 +43,16 @@ indexList.forEach { ixName, propName, modifier ->
 indexList.forEach { ixName, propName, modifier ->
     mgmt = graph.openManagement()
     report = ManagementSystem.awaitGraphIndexStatus(graph, ixName).status(SchemaStatus.ENABLED).call()
+    mgmt.commit()
+}
+
+/**
+ *  Reindex each existing data
+ */
+indexList.forEach { ixName, propName, modifier ->
+    mgmt = graph.openManagement()
+    ix = mgmt.getGraphIndex(ixName)
+    mgmt.updateIndex(ix, SchemaAction.REINDEX)
     mgmt.commit()
 }
 

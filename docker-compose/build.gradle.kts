@@ -8,31 +8,24 @@ tasks {
      * * create the volumes
      * * create the networks
      */
+    val volumes = listOf(
+        mapOf("name" to "jg-corpus-data", "task" to "Corpus"),
+        mapOf("name" to "jg-product-data", "task" to "Product"),
+        mapOf("name" to "jg-cql-data", "task" to "Cql"),
+        mapOf("name" to "jg-es-data", "task" to "Es"),
+        mapOf("name" to "jg-scripts", "task" to "Script"))
 
-    register<Exec>("dockerCreateJGVolumeCorpus") {
-        group = "docker"
-        executable("docker")
-        args(listOf("volume", "create", "--driver", "local", "--name=jg-corpus-data"))
-    }
-    register<Exec>("dockerCreateJGVolumeProduct") {
-        group = "docker"
-        executable("docker")
-        args(listOf("volume", "create", "--driver", "local", "--name=jg-product-data"))
-    }
-    register<Exec>("dockerCreateJGVolumeCql") {
-        group = "docker"
-        executable("docker")
-        args(listOf("volume", "create", "--driver", "local", "--name=jg-cql-data"))
-    }
-    register<Exec>("dockerCreateJGVolumeEs") {
-        group = "docker"
-        executable("docker")
-        args(listOf("volume", "create", "--driver", "local", "--name=jg-es-data"))
-    }
-    register<Exec>("dockerCreateJGVolumeScripts") {
-        group = "docker"
-        executable("docker")
-        args(listOf("volume", "create", "--driver", "local", "--name=jg-scripts"))
+    volumes.forEach {
+        register<Exec>("dockerCreateJGVolume${it["task"]}") {
+            group = "docker"
+            executable("docker")
+            args(listOf("volume", "create", "--driver", "local", "--name=${it["name"]}"))
+        }
+        register<Exec>("dockerRemoveJGVolume${it["task"]}") {
+            group = "docker"
+            executable("docker")
+            args(listOf("volume", "rm", "${it["name"]}"))
+        }
     }
     register("dockerCreateJGServerVolumes") {
         group = "docker"
