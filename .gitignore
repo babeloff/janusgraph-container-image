@@ -9,3 +9,7 @@ gradle-app.setting
 
 # Intermediate
 build/
+
+### Yaml Secrets files ###
+.*.sec.yml
+.*.sec.yaml

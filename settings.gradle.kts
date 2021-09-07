@@ -6,7 +6,8 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        id("org.jetbrains.gradle.docker") version "1.1.6"
+        id("org.jetbrains.gradle.docker").version("1.1.6")
+        id("com.pswidersk.yaml-secrets-plugin").version("1.0.8")
     }
 }
 

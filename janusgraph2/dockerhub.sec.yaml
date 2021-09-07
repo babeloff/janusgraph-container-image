@@ -1,0 +1,9 @@
+# required without default
+# update generated `.dockerhub.sec.yml`
+# go to https://hub.docker.com/settings/security to create an access-token
+registry:
+  # the following is the dockerhub user-name and access-token
+  username: null
+  password: null
+
+
