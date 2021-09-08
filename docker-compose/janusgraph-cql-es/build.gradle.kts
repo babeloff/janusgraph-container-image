@@ -39,7 +39,10 @@ tasks {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
             ":docker-compose:janusgraph-cql-es:configureJanusgraph2CqlEsServer",
-            ":docker-compose:dockerCreateJGServerVolumes")
+            ":docker-compose:dockerCreateJGVolumeCorpus",
+            ":docker-compose:dockerCreateJGVolumeProduct",
+            ":docker-compose:dockerCreateJGVolumeCql",
+            ":docker-compose:dockerCreateJGVolumeEs")
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"

@@ -27,26 +27,4 @@ tasks {
             args(listOf("volume", "rm", "${it["name"]}"))
         }
     }
-    register("dockerCreateJGServerVolumes") {
-        group = "docker"
-        dependsOn(
-            "dockerCreateJGVolumeCorpus",
-            "dockerCreateJGVolumeProduct",
-            "dockerCreateJGVolumeCql",
-            "dockerCreateJGVolumeEs"
-        )
-    }
-    register("dockerCreateJGClientVolumes") {
-        group = "docker"
-        dependsOn(
-            "dockerCreateJGVolumeScript",
-            "dockerCreateJGVolumeProduct")
-    }
-    register("dockerCreateJGVolumes") {
-        group = "docker"
-        dependsOn(
-            "dockerCreateJGClientVolumes",
-            "dockerCreateJGServerVolumes",
-        )
-    }
 }

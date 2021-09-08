@@ -27,7 +27,9 @@ tasks {
         dependsOn(
             ":janusgraph2:dockerJanusgraph2Build",
             ":docker-compose:janusgraph-client:configureJanusgraph2Client",
-            ":docker-compose:dockerCreateJGClientVolumes")
+            ":docker-compose:dockerCreateJGVolumeScript",
+            ":docker-compose:dockerCreateJGVolumeProduct",
+            )
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
