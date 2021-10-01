@@ -15,8 +15,7 @@
 # limitations under the License.
 
 # exit early if directory is empty
-IS_EMPTY=$(ls -A -- "${JG_INIT_DB_DIR}")
-if [[ -z "$IS_EMPTY" ]]
+if ! [ "$(ls -A "${JANUS_INITDB_DIR}")" ]
 then
   exit 0
 fi

@@ -128,9 +128,9 @@ Configuration of the JanusGraph image is controlled by environment variables.
 These environment variables are applied in sorted alphanumeric order.
 In JanusGraph there are two main types of configuration files, Gremlin server and database properties.
 
-The file for configuring the Gremlin server is `gremlin-server.yaml`.
-Using the environment variables a base `gremlin-server.yaml` file may be modified and
-written to the default `/etc/opt/janusgraph/gremlin-server.yaml`.
+The file for configuring the Gremlin server is `janusgraph-server.yaml`.
+Using the environment variables a base `janusgraph-server.yaml` file may be modified and
+written to the default `/etc/opt/janusgraph/janusgraph-server.yaml`.
 
 Each database may have a distinct backend.
 Each backend may have its own unique configuration.
@@ -152,27 +152,27 @@ a| A space delimited list of objects you wish to print.
 | `JG_SHOW`
 a| A space delimited list of objects you wish to print.
 * env    : environment variables
-* server : the content of gremlin-server.yaml
+* server : the content of janusgraph-server.yaml
 * graph  : a list of the janusgraph-*.properties files and their contents
 * script : a list of the *.groovy scripts and their contents
 | empty list
 
-| `GREMLIN__*`
+| `JG_SVC__*`
 | Any Gremlin Server configuration option to override in the default configuration (YAML) file,
-specified with an outer `GREMLIN_SERVER` namespace (e.g., `GREMLIN__threadPoolWorker`).
+specified with an outer `GREMLIN_SERVER` namespace (e.g., `JG_SVC__threadPoolWorker`).
 See "Gremlin Server Configuration" <<GS_CONFIG>> for available options.
 See <<Gremlin-Server-Config, Gremlin Server Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables.
 | optional
 
-| `JG_TEMPLATE`
+| `JG_GRAPH_TEMP`
 | The Janusgraph template specifies the template properties file to which
-the `JG__*` edits will be applied for each back-end.
+the `JG_GRAPH__*` edits will be applied for each back-end.
 | no default value
 
-| `JG__*`
+| `JG_GRAPH__*`
 | Any JanusGraph configuration option to override in the template properties file,
-specified with an outer `JANUS` namespace (e.g., `JG__foo_storageHostname`).
+specified with an outer `JANUS` namespace (e.g., `JG_GRAPH__foo_storageHostname`).
 See "JanusGraph Configuration" <<JG_CONFIG>> for available options.
 See <<Janusgraph-Backend-Config, Janusgraph Database Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables
@@ -201,8 +201,8 @@ Enables a container running Gremlin Console to connect to a remote server using 
 [[Gremlin-Server-Config]]
 ==== Gremlin Server Configuration : Environment Variable Syntax
 
-Environment Variables that start with the prefix `GREMLIN__*` are used
-to edit the base `gremlin-server.yaml` file.
+Environment Variables that start with the prefix `JG_SVC__*` are used
+to edit the base `janusgraph-server.yaml` file.
 The text after the prefix in the environment variable name need only be unique.
 The environment variables are evaluated in alphanumeric (ascii) order.
 The value is a `yq` eval command <<YQ_GITHUB>>.
@@ -219,14 +219,14 @@ with the value `conf/JanusGraph-configurationmanagement.properties`:
 [source,bash]
 ----
 docker run --rm -it \
-  -e GREMLIN__CMG='.graphs.ConfigurationManagementGraph=conf/janusgraph-configurationmanagement.properties' \
+  -e JG_SVC__CMG='.graphs.ConfigurationManagementGraph=conf/janusgraph-configurationmanagement.properties' \
   docker.io/janusgraph/janusgraph:latest janusgraph
 ----
 [source,text]
 ----
 ...
 graphs:
-  graph: conf/gremlin-server/janusgraph-cql-es-server.properties
+  graph: conf/janusgraph-cql-es-graph.properties
   ConfigurationManagementGraph: conf/janusgraph-configurationmanagement.properties
 scriptEngines:
 ...
@@ -241,7 +241,7 @@ For example, to delete the 'graphs.graph' configuration property we can do the f
 ----
 export JG_SHOW='server'
 docker run --rm -it \
-  -e GREMLIN__delGraph='del(.graphs.graph)'
+  -e JG_SVC__delGraph='del(.graphs.graph)'
   docker.io/janusgraph/janusgraph:latest janusgraph
 ----
 [source,text]
@@ -263,7 +263,7 @@ This example shows how to append an item to a list.
 export JG_SHOW='server'
 export PLUGIN="org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"
 docker run --rm -it \
-  -e GREMLIN__addPlugin='.scriptEngines.gremlin-groovy.plugins[$PLUGIN].files += /scripts/another-script.groovy' \
+  -e JG_SVC__addPlugin='.scriptEngines.gremlin-groovy.plugins[$PLUGIN].files += /scripts/another-script.groovy' \
   docker.io/janusgraph/janusgraph:latest janusgraph
 ----
 [source,text]
@@ -289,7 +289,7 @@ scriptEngines:
 
 === Mounted Configuration
 
-By default, the container stores both the `janusgraph.properties` and `gremlin-server.yaml` files
+By default, the container stores both the `janusgraph.properties` and `janusgraph-server.yaml` files
 in the `JG_CONFIG_DIR` directory which maps to `/etc/opt/janusgraph`.
 When the container starts, it updates those files using the environment variable values.
 If you have a specific configuration and do not wish to use environment variables to configure JanusGraph,
@@ -316,28 +316,28 @@ janusgraph-mount | chown: changing ownership of '/etc/opt/janusgraph/janusgraph.
 [[Janusgraph-Backend-Config]]
 ==== Janusgraph Back-End Configuration : Environment Variable Syntax
 
-The `JG_TEMPLATE` environment variable is used to define a template JanusGraph properties file.
+The `JG_GRAPH_TEMP` environment variable is used to define a template JanusGraph properties file.
 Values in the template properties file are used unless an alternate value
 for a given property is provided in the environment.
 The common usage will be to specify a template for the general environment (e.g., `cassandra-es`)
 and then provide additional individual configuration to override/extend the template.
 The available templates depend on the JanusGraph version
-(see <<JG_TEMPLATES,conf/gremlin-server/janusgraph*.yaml>>).
+(see <<JG_GRAPH_TEMP,conf/janusgraph*-service.yaml>>).
 
 [cols="3,3"]
 |===
 | `Janusgraph Backend Template` | Supported Versions
 
-| `berkeleyje` | >=0.5.3
-| `berkeleyje-es` | >=0.5.3
-| `berkeleyje-lucene` | >=0.5.3
-| `berkeleyje-solr` | >=0.5.3
-| `cql` | >=0.5.3
-| `cql-es` | >=0.5.3
-| `cql-configurationgraph` | >=0.5.3
-| `hbase-es` | >=0.5.3
-| `hbase-solr` | >=0.5.3
-| `inmemory` | >=0.5.3
+| `berkeleyje` | >=0.6.0
+| `berkeleyje-es` | >=0.6.0
+| `berkeleyje-lucene` | >=0.6.0
+| `berkeleyje-solr` | >=0.6.0
+| `cql` | >=0.6.0
+| `cql-es` | >=0.6.0
+| `cql-configurationgraph` | >=0.6.0
+| `hbase-es` | >=0.6.0
+| `hbase-solr` | >=0.6.0
+| `inmemory` | >=0.6.0
 |===
 
 ===== Example: Berkeleyje-Lucene
@@ -348,9 +348,9 @@ storage and server settings:
 [source,bash]
 ----
 docker run --name janusgraph2-default \
-    -e JG_TEMPLATE=cql-es \
-    -e JG__default_storageCachePercentage='.storage.cache-percentage=80' \
-    -e GREMLIN__workerCount='.threadPoolWorker=2' \
+    -e JG_GRAPH_TEMPLATE=janusgraph-cql-es-graph \
+    -e JG_GRAPH__default_storageCachePercentage='.storage.cache-percentage=80' \
+    -e JG_SVC__workerCount='.threadPoolWorker=2' \
     docker.io/babeloff/janusgraph2:latest
 ----
 
@@ -369,7 +369,7 @@ index.search.backend=lucene
 storage.berkeleyje.cache-percentage=80
 index.search.directory=/var/lib/janusgraph/index
 
-$ docker exec janusgraph-default grep threadPoolWorker /etc/opt/janusgraph/gremlin-server.yaml
+$ docker exec janusgraph-default grep threadPoolWorker /etc/opt/janusgraph/janusgraph-server.yaml
 threadPoolWorker: 2
 ----
 
@@ -409,7 +409,7 @@ index.search.directory=/var/lib/janusgraph/index
 
 == Default user JanusGraph
 
-> **Note:** The default user of the image changed for all version beginning with the newest image version of 0.5.3.
+> **Note:** The default user of the image changed for all version beginning with the newest image version of 0.6.0.
 
 The user is created with uid 999 and gid 999 and user's a home dir is `/var/lib/janusgraph`.
 
@@ -429,7 +429,7 @@ Following folder are created with these user rights:
 - [[[JG_CONFIG]]] https://docs.janusgraph.org/basics/configuration-reference/
 - [[[JG_LUCENE]]] https://docs.janusgraph.org/index-backend/lucene/
 - [[[JG_CONNECT_JAVA]]] https://docs.janusgraph.org/connecting/java/
-- [[[JG_TEMPLATES]]] https://github.com/search?q=org:JanusGraph+repo:janusgraph+filename:janusgraph.properties%20path:janusgraph-dist/src/assembly/static/conf/gremlin-server
+- [[[JG_TEMPLATES]]] https://github.com/search?q=org:JanusGraph+repo:janusgraph+filename:janusgraph.properties%20path:janusgraph-dist/src/assembly/static/conf
 - [[[GS_CONFIG]]] http://tinkerpop.apache.org/docs/current/reference/#_configuring_2
 - [[[YQ_GITHUB]]] https://github.com/mikefarah/yq
 - [[[YQ_DOC]]] https://mikefarah.gitbook.io/yq

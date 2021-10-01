@@ -20,12 +20,12 @@ docker compose up --build --force-recreate
 ## Customization
 
 It may be that you are not satisfied with the configuration files.
-You may need to fiddle about a bit to get the gremlin-server.yaml file to get what you want.
+You may need to fiddle about a bit to get the `janusgraph-server.yaml` file to get what you want.
 The yq tool which performs these updates gets its instructions from environment variables.
 
 [source,powershell]
 ----
-yq.ps1 -Command eval -FilePath ../janusgraph-docker2/conf/gremlin-server.yaml
+yq.ps1 -Command eval -FilePath ../janusgraph-docker2/conf/janusgraph-server.yaml
 ----
 [source,text]
 ----
@@ -61,10 +61,10 @@ The following objects are supported:
 
 ### Gremlin Server
 
-* `gremlin-server.yaml`
-* GREMLIN__<action-name>
+* `janusgraph-server.yaml`
+* JG_SVC__<action-name>
 
-There is a single `gremlin-server.yaml`.
+There is a single `janusgraph-server.yaml`.
 Its schema is defined here https://docs.janusgraph.org/basics/server/.
 Note::: The double underscore after "GREMLIN_SERVER" is critical.
 The actions are applied in sorted order based on the 'action-name'.
@@ -74,20 +74,20 @@ The actions are applied in sorted order based on the 'action-name'.
 ### Graph Configuration
 
 * `janusgraph-graph.properties`
-* JG__<graph-name>_<action-name>
+* JG_GRAPH__<graph-name>_<action-name>
 
-An important section of the `gremlin-server.yaml` is the `.graphs` section.
+An important section of the `janusgraph-server.yaml` is the `.graphs` section.
 It is here that the graphs are defined, named, and configured.
 e.g. for graph named `foo`.
 [source,yaml]
 ----
-GREMLIN__defaultGraph: '.graphs.foo = "/etc/opt/janusgraph/janusgraph-foo.properties"'
+JG_SVC__defaultGraph: '.graphs.foo = "/etc/opt/janusgraph/janusgraph-foo.properties"'
 ----
 This variable defines a default graph named `foo`.
 The configuration of which is expected to be found in `/etc/opt/janusgraph/janusgraph-foo.properties`.
 This does not create the configuration file, but only requires it.
 In order to construct the properties `janusgraph-foo.properties` file at least
-one JG__foo_<action-name> property is required.
+one JG_GRAPH__foo_<action-name> property is required.
 
 Note::: The double underscore after "JG_PROPS" is critical.
 The actions are applied in sorted order based on the 'action-name'.
@@ -97,7 +97,7 @@ The actions are applied in sorted order based on the 'action-name'.
 
 [source,yaml]
 ----
-JG__foo_storageHostname: 'storage.hostname=jce-cql'
+JG_GRAPH__foo_storageHostname: 'storage.hostname=jce-cql'
 ----
 This will cause the `/etc/opt/janusgraph/janusgraph-foo.properties` file to be generated (if it does not exist).
 The 'storage.hostname=jce-cql' property to be set / created.
@@ -106,13 +106,13 @@ The 'storage.hostname=jce-cql' property to be set / created.
 ### Gremlin Script
 
 * `script.groovy`
-* GREMLIN_GROOVY__<script-name>
+* JG_SCRIPT__<script-name>
 
 Suppose we wish to create a script to construct a traversal object for the `foo` graph we requested.
 We need to inform the server the script is present.
 [source,yaml]
 ----
-GREMLIN__mgmtGraphTraversal: >-
+JG_SVC__mgmtGraphTraversal: >-
   .scriptEngines.gremlin-groovy.plugins.["org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin"]
     .files = ["scripts/empty-sample.groovy", "/etc/opt/janusgraph/baz.groovy"]
 ----
@@ -120,7 +120,7 @@ GREMLIN__mgmtGraphTraversal: >-
 We need to provide the content of the new `baz` script.
 [source,yaml]
 ----
-GREMLIN_GROOVY__baz: |
+JG_SCRIPT__baz: |
    def globals = [:]
    globals << [gf : foo.traversal()]
 ----
@@ -134,7 +134,7 @@ Indices can be created using the <<gremlin-groovy>> approach.
 Here is an example.
 [source,yaml]
 ----
-GREMLIN_GROOVY__fooIndex: |
+JG_SCRIPT__fooIndex: |
     foo.tx().rollback()
     mgmt = foo.openManagement()
     namePk = mgmt.getPropertyKey('name')

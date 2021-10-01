@@ -7,7 +7,7 @@ plugins {
     base
 }
 
-version = "0.5.3"
+version = "0.6.0"
 
 tasks {
 
@@ -19,7 +19,7 @@ tasks {
 //        expand("dockerImage" to "docker.io/babeloff/janusgraph2:latest")
         expand(
             "dockerImage" to "janusgraph2",
-            "dockerImageVersion" to "0.5.3",
+            "dockerImageVersion" to "0.6.0",
             "schemaPath" to layout.projectDirectory.dir ("../schema"))
     }
 

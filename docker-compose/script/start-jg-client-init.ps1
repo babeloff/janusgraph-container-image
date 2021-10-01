@@ -8,7 +8,7 @@ docker run --rm `
   --network jg-network `
   --mount type=bind,target=/opt/janusgraph/scripts,source=$JG_SCRIPT_DIR,readonly `
   --env GREMLIN_REMOTE_HOSTS=jce-jg `
-  janusgraph/janusgraph:0.5.3 `
+  janusgraph/janusgraph:0.6.0 `
   ./bin/gremlin.sh `
     --verbose `
     --execute /opt/janusgraph/scripts/initial_load.groovy

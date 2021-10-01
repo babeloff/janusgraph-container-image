@@ -1,6 +1,6 @@
 host: 0.0.0.0
 port: 8182
-scriptEvaluationTimeout: 30000
+evaluationTimeout: 30000
 channelizer: org.apache.tinkerpop.gremlin.server.channel.WebSocketChannelizer
 # tag::
 graphs:
@@ -12,13 +12,10 @@ scriptEngines:
       org.apache.tinkerpop.gremlin.server.jsr223.GremlinServerGremlinPlugin: {}
       org.apache.tinkerpop.gremlin.tinkergraph.jsr223.TinkerGraphGremlinPlugin: {}
       org.apache.tinkerpop.gremlin.jsr223.ImportGremlinPlugin:
-        classImports:
-          - java.lang.Math
-        methodImports:
-          - java.lang.Math#*
+        classImports: [java.lang.Math]
+        methodImports: [java.lang.Math#*]
       org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin:
-        files:
-          - scripts/empty-sample.groovy
+        files: [scripts/empty-sample.groovy]
 serializers:
   - className: org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0
     config:
@@ -41,21 +38,17 @@ processors:
       cacheMaxSize: 1000
 metrics:
   consoleReporter:
-    enabled: true
+    enabled: false
     interval: 180000
   csvReporter:
     enabled: true
     interval: 180000
-    fileName: /tmp/gremlin-server-metrics.csv
+    fileName: /tmp/janusgraph-server-metrics.csv
   jmxReporter:
     enabled: true
   slf4jReporter:
     enabled: true
     interval: 180000
-  gangliaReporter:
-    enabled: false
-    interval: 180000
-    addressingMode: MULTICAST
   graphiteReporter:
     enabled: false
     interval: 180000
@@ -67,5 +60,5 @@ maxAccumulationBufferComponents: 1024
 resultIterationBatchSize: 64
 writeBufferLowWaterMark: 32768
 writeBufferHighWaterMark: 65536
-threadPoolWorker: 1
-gremlinPool: 8
+#threadPoolWorker: 1
+#gremlinPool: 8

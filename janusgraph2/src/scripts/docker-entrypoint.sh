@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GREMLIN_YAML="${JG_CONFIG_DIR}/gremlin-server.yaml"
-JG_YAML="${JG_CONFIG_DIR}/janusgraph.yaml"
+JG_PROPS_YAML="${JG_CONFIG_DIR}/janusgraph-graph.yaml"
+JG_SERVER_YAML="${JG_CONFIG_DIR}/janusgraph-server.yaml"
 
+echo 'running as root; step down to run as janusgraph user'
 if
  test "$1" == 'janusgraph'
 then
@@ -38,24 +39,26 @@ if
 then
   mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
-  GREMLIN_YAML_SRC=$(realpath "conf/gremlin-server/${GREMLIN_TEMPLATE:-gremlin-server}.yaml")
+  # If JG_SERVER_TEMP not set, then provide a reasonable default
+  JG_SERVER_YAML_SRC=$(realpath "conf/${JG_SERVER_TEMP:-janusgraph-server}.yaml")
   if
-    cp "${GREMLIN_YAML_SRC}" "${GREMLIN_YAML}"
+    cp "${JG_SERVER_YAML_SRC}" "${JG_SERVER_YAML}"
   then
-    echo 'copied ' "${GREMLIN_YAML_SRC}"
+    echo 'copied ' "${JG_SERVER_YAML_SRC}"
   else
-    echo 'failed to copy ' "${GREMLIN_YAML_SRC}"
-    ls "conf/gremlin-server/"
+    echo 'failed to copy ' "${JG_SERVER_YAML_SRC}"
+    ls "conf/*.yaml"
   fi
 
-  JG_YAML_SRC=$(realpath "conf/gremlin-server/${JG_TEMPLATE:-janusgraph}.yaml")
+  # If JG_GRAPH_TEMP not set, then provide a reasonable default
+  JG_PROPS_YAML_BASE=$(realpath "conf/${JG_GRAPH_TEMP:-janusgraph-inmemory-graph}.yaml")
   if
-    cp "${JG_YAML_SRC}" "${JG_YAML}"
+    cp "${JG_PROPS_YAML_BASE}" "${JG_PROPS_YAML}"
   then
-    echo 'copied ' "${JG_YAML_SRC}"
+    echo 'copied ' "${JG_PROPS_YAML_BASE}"
   else
-    echo 'failed to copy ' "${JG_YAML_SRC}"
-    ls "conf/gremlin-server/"
+    echo 'failed to copy ' "${JG_PROPS_YAML_BASE}"
+    ls "conf/*.yaml"
   fi
 
   chown -R "$(id -u):$(id -g)" "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
@@ -67,35 +70,33 @@ then
   do
     ENV_VAL="${!ENV_KEY}"
 
-    # GREMLIN__*
-    if [[ "${ENV_KEY}" =~ GREMLIN__([[:alnum:]_]+) ]]
+    # JG_SVC__*
+    if [[ "${ENV_KEY}" =~ JG_SVC__([[:alnum:]_]+) ]]
     then
       EVAL_INDEX="${BASH_REMATCH[1]}"
       EVAL_CMD="$ENV_VAL"
 
-      echo "update gremlin server '${EVAL_INDEX}' with '${EVAL_CMD}'"
-      yq eval "${EVAL_CMD}" "${GREMLIN_YAML}" --prettyPrint --inplace
+      echo "update server '${EVAL_INDEX}' with '${EVAL_CMD}'"
+      yq eval "${EVAL_CMD}" "${JG_SERVER_YAML}" --prettyPrint --inplace
 
-    # JG__*
-    elif [[ "${ENV_KEY}" =~ JG__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${ENV_VAL} ]]
+    # JG_GRAPH__*
+    elif [[ "${ENV_KEY}" =~ JG_GRAPH__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${ENV_VAL} ]]
     then
       EVAL_END=${BASH_REMATCH[1]}
       EVAL_INDEX=${BASH_REMATCH[2]}
       EVAL_CMD="$ENV_VAL"
 
       JG_CFG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}.yaml"
-      JG_TGT="${JG_CONFIG_DIR}/janusgraph-${EVAL_END:-default}.properties"
       if
        test ! -f "${JG_CFG_TGT}"
       then
-        cp "${JG_YAML}" "${JG_CFG_TGT}"
+        cp "${JG_PROPS_YAML}" "${JG_CFG_TGT}"
       fi
       echo "update graph back-end '$EVAL_END' and property eval '$ENV_VAL'"
       yq eval "${EVAL_CMD}" "${JG_CFG_TGT}" --prettyPrint --inplace
-      yq eval --output-format props "${JG_CFG_TGT}" > "${JG_TGT}"
 
-    # GREMLIN_GROOVY__*
-    elif [[ "${ENV_KEY}" =~ GREMLIN_GROOVY__([[:alnum:]_]+) ]]
+    # JG_SCRIPT__*
+    elif [[ "${ENV_KEY}" =~ JG_SCRIPT__([[:alnum:]_]+) ]]
     then
       SCRIPT_NAME=${BASH_REMATCH[1]}
       SCRIPT_CONTENT="$ENV_VAL"
@@ -109,6 +110,16 @@ then
     fi
   done < <(compgen -A variable | sort --ignore-nonprinting)
 
+  # convert all the yaml files into equivalent java-properties files
+  for graphYaml in "${JG_CONFIG_DIR}"/*.yaml
+  do
+    test -f "$graphYaml" || break
+    graphProps="$(basename "$graphYaml" .yaml).properties"
+    yq eval --output-format props "${graphYaml}" > "${graphProps}"
+  done
+
+  # show the requested information
+  # JG_SHOW is a list of names
   show_array=($JG_SHOW)
   for (( ix=0; ix<${#show_array[@]}; ix++ ))
   do
@@ -120,7 +131,7 @@ then
       ;;
      server | config)
       echo '== GREMLIN SERVER ==============================='
-      yq eval --prettyPrint '... comments=""' "${JG_CONFIG_DIR}/gremlin-server.yaml"
+      yq eval --prettyPrint '... comments=""' "${JG_CONFIG_DIR}/janusgraph-server.yaml"
       ;;
      graph | graphs)
       find "${JG_CONFIG_DIR}" -type f -name '*.properties' | while read -r configFile
@@ -148,6 +159,7 @@ then
     esac
   done
 
+  # JG_ACTION is a single command
   case "${JG_ACTION:-run}" in
    run)
     echo '==================================================='
@@ -155,7 +167,7 @@ then
     if
      test -n "${JG_STORAGE_TIMEOUT:-}"
     then
-      yq eval '.graphs' "${GREMLIN_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
+      yq eval '.graphs' "${JG_SERVER_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
         F="$(mktemp --suffix .groovy)"
         echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$F"
@@ -168,7 +180,7 @@ then
       sleep 60
     fi
     /usr/local/bin/load-init-db.sh &
-    exec "${JG_HOME}/bin/gremlin-server.sh" "${GREMLIN_YAML}"
+    exec "${JG_HOME}/bin/janusgraph-server.sh" "${JG_SERVER_YAML}"
     ;;
    *)
     echo "action unknown ${JG_ACTION} ; fail"

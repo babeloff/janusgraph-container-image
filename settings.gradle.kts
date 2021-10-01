@@ -6,7 +6,7 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        id("org.jetbrains.gradle.docker").version("1.1.6")
+        id("org.jetbrains.gradle.docker").version("1.1.8")
         id("com.pswidersk.yaml-secrets-plugin").version("1.0.8")
     }
 }
@@ -22,3 +22,4 @@ include(":docker-compose:janusgraph-client")
 include(":docker-compose:janusgraph-cql-es")
 include(":docker-compose:janusgraph-dynamic")
 include(":docker-compose:janusgraph-inmemory")
+

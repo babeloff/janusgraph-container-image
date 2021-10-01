@@ -8,9 +8,7 @@ plugins {
     id("com.pswidersk.yaml-secrets-plugin")
 }
 
-version = "0.5.3"
-
-//val mySecrets = secr?ets
+version = "0.6.0"
 
 docker {
 

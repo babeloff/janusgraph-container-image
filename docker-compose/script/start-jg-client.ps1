@@ -15,6 +15,6 @@ docker run --rm `
   --mount type=bind,source=${JG_SCRIPT_DIR},target=/opt/janusgraph/scripts,readonly `
   --env GREMLIN_REMOTE_HOSTS=jce-jg `
   --interactive --tty `
-  janusgraph/janusgraph:0.5.3 `
+  janusgraph/janusgraph:0.6.0 `
   ./bin/gremlin.sh
 # end::run[]

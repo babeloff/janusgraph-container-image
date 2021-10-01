@@ -30,36 +30,39 @@ services:
       JG_SHOW: 'env server graphs scripts'
       JVM_OPTIONS:  '-Xms512m -Xmx512m'
       # tag::janusgraph_environment[]
-      GREMLIN_TEMPLATE: 'gremlin-server-cql-es'
-      JG_TEMPLATE: 'janusgraph-cql-es-server'
+      JG_SERVER_TEMP: 'janusgraph-server'
+      JG_GRAPH_TEMP: 'janusgraph-cql-es-graph'
 
       # http://tinkerpop.apache.org/javadocs/3.4.6/full/org/apache/tinkerpop/gremlin/server/Settings.html
 
-      GREMLIN__scriptEvaluationTimeout: '.scriptEvaluationTimeout = 1200000'
-      GREMLIN__threadPoolWorker: '.threadPoolWorker = 3'
+      JG_SVC__evaluationTimeout: '.evaluationTimeout = 1200000'
+      JG_SVC__threadPoolWorker: '.threadPoolWorker = 3'
 
       # the following allows the the server to serialize sub-graphs
-      GREMLIN__tinkerIO: >-
+      JG_SVC__tinkerIO: >-
         .serializers[] |=
         select(.className == "org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0'
            and .config.ioRegistries)
         .config.ioRegistries += ['org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3d0']
 
       # 2^20=1,048,576Bytes=1MiB , the default is 2^16=64KiB=65,536Bytes
-      GREMLIN__maxContentLength: '.maxContentLength = 1048576'
+      JG_SVC__maxContentLength: '.maxContentLength = 1048576'
 
       # configure the default graph
-      GREMLIN__defaultGraph: '.graphs.graph = "/etc/opt/janusgraph/janusgraph-graph.properties"'
+      JG_SVC__defaultGraph: '.graphs.graph = "/etc/opt/janusgraph/janusgraph-graph.properties"'
 
-      JG__graph_storageHostname: '.storage.hostname = "jce-cql"'
-      JG__graph_indexSearchHostname: '.index.search.hostname = "jce-es"'
-      JG__graph_storageBatchLoading: '.storage.batch-loading = "true"'
-      JG__graph_schemaDefault: '.schema.default = "logging"'
-      JG__graph_schemaConstraint: '.schema.constraints = "false"'
-      JG__graph_storageTimeout: '.storage.connection-timeout = "20000"'
-      JG__graph_metrics: 'metrics.enabled = "true"'
+      JG_GRAPH__graph_storageHostname: '.storage.hostname = "jce-cql"'
+      JG_GRAPH__graph_indexSearchHostname: '.index.search.hostname = "jce-es"'
+      JG_GRAPH__graph_storageBatchLoading: '.storage.batch-loading = "true"'
 
-      GREMLIN_GROOVY__graphTraversal: |
+      JG_GRAPH__graph_schemaDefault: '.schema.default = "default"'
+      JG_GRAPH__graph_schemaLogging: '.schema.logging = "true"'
+
+      JG_GRAPH__graph_schemaConstraint: '.schema.constraints = "false"'
+      JG_GRAPH__graph_storageTimeout: '.storage.connection-timeout = "20000"'
+      JG_GRAPH__graph_metrics: 'metrics.enabled = "true"'
+
+      JG_SCRIPT__graphTraversal: |
         def globals = [:]
         globals << [hook : [
           onStartUp: { ctx ->
@@ -71,7 +74,7 @@ services:
         ] as LifeCycleHook]
         globals << [g : graph.traversal()]
 
-      GREMLIN__mgmtGraphTraversal: >-
+      JG_SVC__mgmtGraphTraversal: >-
         .scriptEngines.gremlin-groovy.plugins.['org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin']
         .files = ["/etc/opt/janusgraph/graphTraversal.groovy"]
 
@@ -106,7 +109,7 @@ services:
   cassandra:
     labels:
       sponsor: 'datastax'
-    image: cassandra:3
+    image: cassandra:3.11
     container_name: 'jce-cql'
     environment:
       JVM_OPTS:  '-Xms512m -Xmx512m'

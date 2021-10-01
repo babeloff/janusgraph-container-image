@@ -30,31 +30,31 @@ services:
       JG_SHOW: 'env server graphs scripts'
       JVM_OPTIONS:  '-Xms512m -Xmx512m'
       # tag::janusgraph_environment[]
-      GREMLIN_TEMPLATE: 'gremlin-server-inmemory'
-      JG_TEMPLATE: 'janusgraph-server'
+      JG_SERVER_TEMP: 'janusgraph-server'
+      JG_GRAPH_TEMP: 'janusgraph-inmemory-graph'
 
       # http://tinkerpop.apache.org/javadocs/3.4.6/full/org/apache/tinkerpop/gremlin/server/Settings.html
 
-      GREMLIN__scriptEvaluationTimeout: '.scriptEvaluationTimeout = 1200000'
-      GREMLIN__threadPoolWorker: '.threadPoolWorker = 3'
+      JG_SVC__evaluationTimeout: '.evaluationTimeout = 1200000'
+      JG_SVC__threadPoolWorker: '.threadPoolWorker = 3'
 
-      # the following allows the the server to serialize sub-graphs
-      GREMLIN__tinkerIO: >-
+      # the following allows the server to serialize sub-graphs
+      JG_SVC__tinkerIO: >-
         .serializers[] |=
         select(.className == "org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0'
            and .config.ioRegistries)
         .config.ioRegistries += ['org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3d0']
 
       # 2^20=1,048,576Bytes=1MiB , the default is 2^16=64KiB=65,536Bytes
-      GREMLIN__maxContentLength: '.maxContentLength = 1048576'
+      JG_SVC__maxContentLength: '.maxContentLength = 1048576'
 
       # configure the default graph
-      GREMLIN__defaultGraph: '.graphs.graph = "/etc/opt/janusgraph/janusgraph-graph.properties"'
+      JG_SVC__defaultGraph: '.graphs.graph = "/etc/opt/janusgraph/janusgraph-graph.properties"'
 
-      JG__graph_storageHostname: '.storage.backend = "inmemory"'
-      JG__graph_schemaDefault: '.schema.default = "none"'
+      JG_GRAPH__graph_storageHostname: '.storage.backend = "inmemory"'
+      JG_GRAPH__graph_schemaDefault: '.schema.default = "none"'
 
-      GREMLIN_GROOVY__graphTraversal: |
+      JG_SCRIPT__graphTraversal: |
         def globals = [:]
         globals << [hook : [
           onStartUp: { ctx ->
@@ -66,7 +66,7 @@ services:
         ] as LifeCycleHook]
         globals << [g : graph.traversal()]
 
-      GREMLIN__mgmtGraphTraversal: >-
+      JG_SVC__mgmtGraphTraversal: >-
         .scriptEngines.gremlin-groovy.plugins.['org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin']
         .files = ["/etc/opt/janusgraph/graphTraversal.groovy"]
 

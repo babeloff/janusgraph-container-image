@@ -2,6 +2,7 @@
 
 == Initialization
 
-Copy over the documentation from JanusGraph/janusgraph-docker in preparation for a rewirte.
+* Copy over the documentation from JanusGraph/janusgraph-docker in preparation for a rewrite.
+* Include all license documents.
+* Initial release from Janusgraph 0.6
 
-Include all license documents.
