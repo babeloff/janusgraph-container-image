@@ -14,9 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# exit early if directory is empty
-if ! [ "$(ls -A "${JANUS_INITDB_DIR}")" ]
+if ! [ -d "${JG_INIT_DB_DIR}" ]
 then
+  echo "startup script directory, ${JG_INIT_DB_DIR}, does not exist"
+  exit 0
+fi
+
+if ! [ "$(ls -A "${JG_INIT_DB_DIR}")" ]
+then
+  echo "no startup scripts to run, ${JG_INIT_DB_DIR} is empty"
   exit 0
 fi
 
@@ -24,7 +30,7 @@ fi
 if [ -n "${JG_SERVER_TIMEOUT:-}" ]
 then
   timeout "${JG_SERVER_TIMEOUT}s" bash -c \
-  "until true &>/dev/null </dev/tcp/127.0.0.1/8182; do echo \"waiting for JanusGraph Server...\"; sleep 5; done"
+    "until true &>/dev/null </dev/tcp/127.0.0.1/8182; do echo \"waiting for JanusGraph Server...\"; sleep 5; done"
 fi
 
 for f in "${JG_INIT_DB_DIR}"/*

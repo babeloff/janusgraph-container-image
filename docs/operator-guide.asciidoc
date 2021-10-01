@@ -11,6 +11,7 @@
 :icons: font
 :docinfo: private
 :graphscript: ../script
+:dockercompose: ../docker-compose
 :sectnums:
 :toc:
 
@@ -69,7 +70,7 @@ gremlin> :> g.V().values('name')
 
 === Using Docker Compose
 
-Start a JanusGraph Server instance using link:docker-compose.yml[`docker-compose.yml`]:
+Start a JanusGraph Server instance using link:{dockercompose}/janusgraph-cql-es/src/docker-compose.yml[docker-compose.yml]:
 
 [source,bash]
 ----
@@ -77,7 +78,7 @@ docker-compose -f docker-compose.yaml up
 ----
 
 Start a JanusGraph container running Gremlin Console in the same network using
-link:docker-compose.yml[`docker-compose.yml`]:
+link:{dockercompose}/janusgraph-client/src/docker-compose.yml[docker-compose.yml]:
 
 [source,bash]
 ----
@@ -191,7 +192,7 @@ section below for help edit gremlin server configuration using environment varia
 Enables a container running Gremlin Console to connect to a remote server using `conf/remote.yaml`.
 | no default value
 
-| `JG_INITDB_DIR`
+| `JG_INIT_DB_DIR`
 | Defines the location of the initialization scripts.
 | `/docker-entrypoint-initdb.d`
 
@@ -301,7 +302,7 @@ if you do not wish to have the environment variables override the values in that
 ==== Example with mounted configuration
 
 Start a JanusGraph instance with mounted configuration using
-link:docker-compose-mount.yml[`docker-compose-mount.yml`]:
+//link:docker-compose-mount.yml[`docker-compose-mount.yml`]:
 
 [source,bash]
 ----
@@ -322,7 +323,7 @@ for a given property is provided in the environment.
 The common usage will be to specify a template for the general environment (e.g., `cassandra-es`)
 and then provide additional individual configuration to override/extend the template.
 The available templates depend on the JanusGraph version
-(see <<JG_GRAPH_TEMP,conf/janusgraph*-service.yaml>>).
+(see <<JG_TEMPLATES,conf/janusgraph*-service.yaml>>).
 
 [cols="3,3"]
 |===
@@ -376,15 +377,12 @@ threadPoolWorker: 2
 ===== Example: Cassandra-ES with Docker Compose
 
 Start a JanusGraph instance with Cassandra and Elasticsearch using the `cassandra-es`
-template through link:docker-compose-cql-es.yml[docker-compose-cql-es.yml]:
+template through link:{dockercompose}/janusgraph-cql-es/build/docker-compose.yml[docker-compose.yml]:
 
 [source,bash]
 ----
-docker-compose -f docker-compose-cql-es.yml up
+./gradlew :docker-compose:upJanusgraph2CqlEsServer
 ----
-
-Inspect the configuration using
-link:docker-compose-cql-es.yml[`docker-compose-cql-es.yml`]:
 
 [source,bash]
 ----

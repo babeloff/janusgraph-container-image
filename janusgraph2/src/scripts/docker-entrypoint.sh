@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+JG_CONFIG_DIR="${JG_CONFIG_DIR:-/etc/opt/janusgraph}"
 JG_PROPS_YAML="${JG_CONFIG_DIR}/janusgraph-graph.yaml"
 JG_SERVER_YAML="${JG_CONFIG_DIR}/janusgraph-server.yaml"
 
@@ -114,7 +115,7 @@ then
   for graphYaml in "${JG_CONFIG_DIR}"/*.yaml
   do
     test -f "$graphYaml" || break
-    graphProps="$(basename "$graphYaml" .yaml).properties"
+    graphProps="${JG_CONFIG_DIR}/$(basename "$graphYaml" .yaml).properties"
     yq eval --output-format props "${graphYaml}" > "${graphProps}"
   done
 
@@ -169,17 +170,19 @@ then
     then
       yq eval '.graphs' "${JG_SERVER_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
-        F="$(mktemp --suffix .groovy)"
+        tempFile="$(mktemp --suffix .groovy)"
         echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$F"
         echo 'waiting for graph database : ' "${JG_GRAPH_NAME}"
         timeout "${JG_STORAGE_TIMEOUT}s" bash -c \
-          "until bin/gremlin.sh -e \"$F\" > /dev/null 2>&1; do echo \"waiting for storage: \"${JG_GRAPH_NAME}\"...\"; sleep 5; done"
-        rm -f "$F"
+          "until bin/gremlin.sh -e \"$tempFile\" > /dev/null 2>&1; do echo \"waiting for storage: \"${JG_GRAPH_NAME}\"...\"; sleep 5; done"
+        rm -f "$tempFile"
       done
     else
       sleep 60
     fi
+    echo 'loading the initial database'
     /usr/local/bin/load-init-db.sh &
+    echo 'starting the JanusGraph server'
     exec "${JG_HOME}/bin/janusgraph-server.sh" "${JG_SERVER_YAML}"
     ;;
    *)
