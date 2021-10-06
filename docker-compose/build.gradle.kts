@@ -20,11 +20,13 @@ tasks {
             group = "docker"
             executable("docker")
             args(listOf("volume", "create", "--driver", "local", "--name=${it["name"]}"))
+            logger.info("$this")
         }
         register<Exec>("dockerRemoveJGVolume${it["task"]}") {
             group = "docker"
             executable("docker")
             args(listOf("volume", "rm", "${it["name"]}"))
+            logger.info("$this")
         }
     }
 }

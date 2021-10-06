@@ -18,7 +18,7 @@ A gradle task has been provided to assist in making this connection.
 
 [source,gradle]
 ----
-./gradlew startJanusgraph2Client --console=plain
+./gradlew startJanusgraphV06Client --console=plain
 ----
 //
 //Starting the client via powershell. (In a separate terminal.)

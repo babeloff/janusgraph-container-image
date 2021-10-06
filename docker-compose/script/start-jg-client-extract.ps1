@@ -10,7 +10,7 @@ docker run --rm `
   --mount type=bind,source=$JG_SCRIPT_DIR,target=/opt/janusgraph/scripts `
   --mount type=bind,source=$JG_CORPUS_DIR,target=/opt/janusgraph/corpus `
   -e GREMLIN_REMOTE_HOSTS=jce-jg `
-  -it janusgraph/janusgraph:0.6.0 `
+  -it janusgraph/janusgraph:2021.10.6 `
   ./bin/gremlin.sh
 # end::extraction[]
 

@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
 }
 
-include(":janusgraph2")
+include(":janusgraph-v06")
 include(":docker-compose:janusgraph-client")
 include(":docker-compose:janusgraph-cql-es")
 include(":docker-compose:janusgraph-dynamic")

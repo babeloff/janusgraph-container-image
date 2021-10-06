@@ -21,20 +21,25 @@ when running a service in production, be sure to specify a specific numeric vers
 link:https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375[avoid]
 link:https://github.com/hadolint/hadolint/wiki/DL3007[unexpected]
 link:https://vsupalov.com/docker-latest-tag/[behavior changes]
-due to `latest` pointing to a new release version, see our <<docker-tagging-policy, Docker tagging Policy>>.
+due to the "latest" pointing to a new release version, see our <<docker-tagging-policy, Docker tagging Policy>>.
 
 == Usage
 
 The primary difference between this docker-janusgraph image and its predecessor is
 the use of yq v4 instead of yq v3.
 
+All the examples are run via the Gradle automation tool.
+This will be a problem for some as they will want to build their own services.
+It is possible to run many of the tasks in debug mode which will reveal the specific commands.
+Gradle may also be run with the '--info' argument which will display the docker commands.
 
 === Start a JanusGraph Server instance
 
-The default configuration uses the "Oracle Berkeley DB Java Edition]"  <<JG_BDB>> storage backend
-and the "Apache Lucene"<<JG_LUCENE>> indexing backend:
+The default configuration uses
+the "Oracle Berkeley DB Java Edition" <<JG_BDB>> storage backend and
+the "Apache Lucene"<<JG_LUCENE>> indexing backend.
 
-[source,bash]
+[source,script]
 ----
 docker run --rm --name janusgraph-default docker.io/janusgraph/janusgraph:latest
 ----
@@ -348,11 +353,11 @@ storage and server settings:
 
 [source,bash]
 ----
-docker run --name janusgraph2-default \
+docker run --name janusgraph-v06-default \
     -e JG_GRAPH_TEMPLATE=janusgraph-cql-es-graph \
     -e JG_GRAPH__default_storageCachePercentage='.storage.cache-percentage=80' \
     -e JG_SVC__workerCount='.threadPoolWorker=2' \
-    docker.io/babeloff/janusgraph2:latest
+    docker.io/babeloff/janusgraph-v06:latest
 ----
 
 Inspect the configuration:
@@ -381,7 +386,7 @@ template through link:{dockercompose}/janusgraph-cql-es/build/docker-compose.yml
 
 [source,bash]
 ----
-./gradlew :docker-compose:upJanusgraph2CqlEsServer
+./gradlew :docker-compose:upJanusgraphV06CqlEsServer
 ----
 
 [source,bash]

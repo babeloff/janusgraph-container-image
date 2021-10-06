@@ -7,22 +7,22 @@ plugins {
     base
 }
 
-version = "0.6.0"
+version = "2021.10.6"
 
 tasks {
 
-    task<Copy>("configureJanusgraph2MemoryServer") {
+    task<Copy>("configureJanusgraphV06MemoryServer") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-//        expand("dockerImage" to "docker.io/babeloff/janusgraph2:latest")
+//        expand("dockerImage" to "docker.io/babeloff/janusgraph-v06:latest")
         expand(
-            "dockerImage" to "janusgraph2",
-            "dockerImageVersion" to "0.6.0")
+            "dockerImage" to "janusgraph-v06",
+            "dockerImageVersion" to "2021.10.6")
     }
 
-    task<Exec>("downJanusgraph2MemoryServer") {
+    task<Exec>("downJanusgraphV06MemoryServer") {
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
@@ -33,12 +33,13 @@ tasks {
             layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
             "down"
         ))
+        logger.info("$this")
     }
 
-    task<Exec>("upJanusgraph2MemoryServer") {
+    task<Exec>("upJanusgraphV06MemoryServer") {
         dependsOn(
-            ":janusgraph2:dockerJanusgraph2Build",
-            ":docker-compose:janusgraph-Memory:configureJanusgraph2MemoryServer")
+            ":janusgraph-v06:dockerJanusgraphV06Build",
+            ":docker-compose:janusgraph-Memory:configureJanusgraphV06MemoryServer")
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
@@ -49,6 +50,7 @@ tasks {
             layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
             "up"
         ))
+        logger.info("$this")
     }
 }
 

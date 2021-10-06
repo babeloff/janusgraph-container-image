@@ -1,32 +1,31 @@
 /**
  * https://tomgregory.com/automating-docker-builds-with-gradle/
- *
  */
 
 plugins {
     base
 }
 
-version = "0.6.0"
+version = "2021.10.6"
 
 tasks {
 
-    task<Copy>("configureJanusgraph2Client") {
+    task<Copy>("configureJanusgraphV06Client") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-//        expand("dockerImage" to "docker.io/babeloff/janusgraph2:latest")
+//        expand("dockerImage" to "docker.io/phreed/janusgraph-v06:latest")
         expand(
-            "dockerImage" to "janusgraph2",
-            "dockerImageVersion" to "0.6.0",
+            "dockerImage" to "janusgraph-v06",
+            "dockerImageVersion" to "2021.10.6",
             "schemaPath" to layout.projectDirectory.dir ("../schema"))
     }
 
-    task<Exec>("startJanusgraph2Client") {
+    task<Exec>("startJanusgraphV06Client") {
         dependsOn(
-            ":janusgraph2:dockerJanusgraph2Build",
-            ":docker-compose:janusgraph-client:configureJanusgraph2Client",
+            ":janusgraph-v06:dockerJanusgraphV06Build",
+            ":docker-compose:janusgraph-client:configureJanusgraphV06Client",
             ":docker-compose:dockerCreateJGVolumeScript",
             ":docker-compose:dockerCreateJGVolumeProduct",
             )
@@ -45,6 +44,7 @@ tasks {
             "--rm",
             "jg-client"
         ))
+        logger.info("$this")
     }
 }
 

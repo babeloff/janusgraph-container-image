@@ -7,22 +7,22 @@ plugins {
     base
 }
 
-version = "0.6.0"
+version = "2021.10.6"
 
 tasks {
 
-    task<Copy>("configureJanusgraph2CqlEsServer") {
+    task<Copy>("configureJanusgraphV06CqlEsServer") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-//        expand("dockerImage" to "docker.io/babeloff/janusgraph2:latest")
+//        expand("dockerImage" to "docker.io/babeloff/janusgraph-v06:latest")
         expand(
-            "dockerImage" to "janusgraph2",
-            "dockerImageVersion" to "0.6.0")
+            "dockerImage" to "janusgraph-v06",
+            "dockerImageVersion" to "2021.10.6")
     }
 
-    task<Exec>("downJanusgraph2CqlEsServer") {
+    task<Exec>("downJanusgraphV06CqlEsServer") {
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"
@@ -33,12 +33,13 @@ tasks {
             layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
             "down"
         ))
+        logger.info("$this")
     }
 
-    task<Exec>("upJanusgraph2CqlEsServer") {
+    task<Exec>("upJanusgraphV06CqlEsServer") {
         dependsOn(
-            ":janusgraph2:dockerJanusgraph2Build",
-            ":docker-compose:janusgraph-cql-es:configureJanusgraph2CqlEsServer",
+            ":janusgraph-v06:dockerJanusgraphV06Build",
+            ":docker-compose:janusgraph-cql-es:configureJanusgraphV06CqlEsServer",
             ":docker-compose:dockerCreateJGVolumeCorpus",
             ":docker-compose:dockerCreateJGVolumeProduct",
             ":docker-compose:dockerCreateJGVolumeCql",
@@ -53,6 +54,7 @@ tasks {
             layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
             "up"
         ))
+        logger.info("$this")
     }
 }
 

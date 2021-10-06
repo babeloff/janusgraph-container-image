@@ -8,7 +8,7 @@ plugins {
     id("com.pswidersk.yaml-secrets-plugin")
 }
 
-version = "0.6.0"
+version = "2021.10.6"
 
 docker {
 
@@ -29,30 +29,31 @@ docker {
     }
     images {
         // project image
-        janusgraph2 {
+        this.named("janusgraphV06") {
             files {
                 from(file("Dockerfile"))
                 from(file("src"))
             }
-            imageName = "janusgraph2" // default
+            imageName = "janusgraph-v06" // default
             imageVersion = project.version.toString() // default
         }
     }
 }
 
 tasks {
-    val containerName = "janusgraph2"
+    val containerName = "janusgraph-v06"
 
-    task<Exec>("stopJanusgraph2") {
+    task<Exec>("stopJanusgraphV06") {
         group = "application"
         executable = "docker"
         args(listOf(
             "stop",
             containerName))
+        logger.info("$this")
     }
 
-    task<Exec>("runJanusgraph2") {
-        dependsOn("dockerJanusgraph2Build")
+    task<Exec>("runJanusgraphV06") {
+        dependsOn("dockerJanusgraphV06Build")
         executable = "docker"
         group = "application"
         args(listOf(
@@ -62,8 +63,9 @@ tasks {
             "8080:8080",
             "--name",
             containerName,
-            docker.images["janusgraph2"].imageNameWithTag
+            docker.images["janusgraphV06"].imageNameWithTag
         ))
+        logger.info("$this")
     }
 }
 
