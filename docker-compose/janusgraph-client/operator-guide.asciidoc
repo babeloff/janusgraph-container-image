@@ -40,7 +40,6 @@ Connect to a running server and check the schema.
 [source,gremlin]
 ----
 :remote connect tinkerpop.server conf/remote.yaml session
-:load schema/00-show.groovysh
 ----
 
 ## Load Schema

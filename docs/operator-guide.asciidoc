@@ -79,7 +79,7 @@ Start a JanusGraph Server instance using link:{dockercompose}/janusgraph-cql-es/
 
 [source,bash]
 ----
-docker-compose -f docker-compose.yaml up
+docker compose -f docker-compose-jg-corpus.yaml up
 ----
 
 Start a JanusGraph container running Gremlin Console in the same network using
@@ -87,7 +87,7 @@ link:{dockercompose}/janusgraph-client/src/docker-compose.yml[docker-compose.yml
 
 [source,bash]
 ----
-docker-compose -f docker-compose.yaml run --rm \
+docker compose -f docker-compose-jg-corpus.yaml run --rm \
     -e GREMLIN_REMOTE_HOSTS#janusgraph janusgraph ./bin/gremlin.sh
 ----
 
@@ -311,7 +311,7 @@ Start a JanusGraph instance with mounted configuration using
 
 [source,bash]
 ----
-docker-compose -f docker-compose-mount.yml up
+docker compose -f docker-compose-mount.yml up
 ----
 [source,text]
 ----
@@ -391,7 +391,7 @@ template through link:{dockercompose}/janusgraph-cql-es/build/docker-compose.yml
 
 [source,bash]
 ----
-docker-compose -f docker-compose-cql-es.yml exec \
+docker compose -f docker-compose-cql-es.yml exec \
       janusgraph sh -c 'cat /etc/opt/janusgraph/janusgraph.properties | grep ^[a-z]'
 ----
 [source,text]
