@@ -3,14 +3,14 @@
  */
 
 plugins {
-    base
+    id("the-docker-plugin")
 }
 
 version = "2021.10.6"
 
 tasks {
 
-    task<Copy>("configureJanusgraphV06Client") {
+    register<Copy>("configureJanusgraphV06Client") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
@@ -22,28 +22,19 @@ tasks {
             "schemaPath" to layout.projectDirectory.dir ("../schema"))
     }
 
-    task<Exec>("startJanusgraphV06Client") {
+    register<org.janusgraph.plugin.docker.DockerComposeRunTask>("startJanusgraphV06Client") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-client:configureJanusgraphV06Client",
             ":docker-compose:createDockerVolumeJgScript",
             ":docker-compose:createDockerVolumeJgProductData",
             )
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
         group = "compose"
-        standardInput = System.`in`
-        standardOutput = System.out
-
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-client")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "run",
-            "--rm",
-            "jg-client"
-        ))
+//        logger.quiet("docker compose up task $path")
+        group = "compose"
+        title.set("janusgraph-client")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
+        alias.set("jg-client")
         logger.info("$this")
     }
 }

@@ -4,7 +4,7 @@
  */
 
 plugins {
-    base
+    id("the-docker-plugin")
 }
 
 version = "2021.10.6"
@@ -22,21 +22,15 @@ tasks {
             "dockerImageVersion" to "2021.10.6")
     }
 
-    task<Exec>("downJanusgraphV06CqlEsServer") {
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
+    task<org.janusgraph.plugin.docker.DockerComposeDownTask>("downJanusgraphV06CqlEsServer") {
         group = "compose"
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-cql-es-server")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "down"
-        ))
+//        logger.quiet("docker compose up task $path")
+        title.set("janusgraph-cql-es-server")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 
-    task<Exec>("upJanusgraphV06CqlEsServer") {
+    task<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06CqlEsServer") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-cql-es:configureJanusgraphV06CqlEsServer",
@@ -44,16 +38,10 @@ tasks {
             ":docker-compose:createDockerVolumeJgProductData",
             ":docker-compose:createDockerVolumeJgCqlData",
             ":docker-compose:createDockerVolumeJgEsData")
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
         group = "compose"
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-cql-es-server")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "up"
-        ))
+//        logger.quiet("docker compose up task $path")
+        title.set("janusgraph-cql-es-server")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 }

@@ -4,14 +4,14 @@
  */
 
 plugins {
-    base
+    id("the-docker-plugin")
 }
 
 version = "2021.10.6"
 
 tasks {
 
-    task<Copy>("configureJanusgraphV06DynamicServer") {
+    register<Copy>("configureJanusgraphV06DynamicServer") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
@@ -22,21 +22,15 @@ tasks {
             "dockerImageVersion" to "2021.10.6")
     }
 
-    task<Exec>("downJanusgraphV06DynamicServer") {
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
+    register<org.janusgraph.plugin.docker.DockerComposeDownTask>("downJanusgraphV06DynamicServer") {
         group = "compose"
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-dynamic-server")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "down"
-        ))
+        //        logger.quiet("docker compose up task $path")
+        title.set("janusgraph-dynamic-server")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 
-    task<Exec>("upJanusgraphV06DynamicServer") {
+    register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06DynamicServer") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-dynamic:configureJanusgraphV06DynamicServer",
@@ -45,16 +39,10 @@ tasks {
             ":docker-compose:createDockerVolumeJgCqlData",
             ":docker-compose:createDockerVolumeJgEsData",
         )
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
         group = "compose"
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-dynamic-server")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "up"
-        ))
+//        logger.quiet("docker compose up task $path")
+        title.set("janusgraph-dynamic-server")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 }

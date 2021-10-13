@@ -11,7 +11,7 @@ version = "2021.10.6"
 
 tasks {
 
-    task<Copy>("configureJanusgraphV06MemoryServer") {
+    register<Copy>("configureJanusgraphV06MemoryServer") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
@@ -22,34 +22,22 @@ tasks {
             "dockerImageVersion" to "2021.10.6")
     }
 
-    task<Exec>("downJanusgraphV06MemoryServer") {
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
+    register<org.janusgraph.plugin.docker.DockerComposeDownTask>("downJanusgraphV06MemoryServer") {
         group = "compose"
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-inmemory-server")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "down"
-        ))
+//        logger.quiet("docker compose up task $path")
+        title.set("janusgraph-inmemory-server")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 
-    task<Exec>("upJanusgraphV06MemoryServer") {
+    register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06MemoryServer") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-inmemory:configureJanusgraphV06MemoryServer")
-//        logger.quiet("docker compose up task $path")
-        executable = "docker"
         group = "compose"
-        environment("COMPOSE_PROJECT_NAME", "janusgraph-inmemory-server")
-        args(listOf(
-            "compose",
-            "-f",
-            layout.buildDirectory.file("docker-compose.yaml").get().asFile.path,
-            "up"
-        ))
+//        logger.quiet("docker compose up task $path")
+        title.set("janusgraph-inmemory-server")
+        yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 }

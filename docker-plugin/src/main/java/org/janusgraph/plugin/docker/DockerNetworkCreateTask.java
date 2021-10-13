@@ -39,9 +39,9 @@ abstract public class DockerNetworkCreateTask extends DefaultTask {
         Network network = client.inspectNetworkCmd()
                 .withNetworkId(rc.getId())
                 .exec();
-        try {
-            File statusFile = getStatusFile().get().getAsFile();
-            Writer writer = new BufferedWriter(new FileWriter(statusFile));
+
+        File statusFile = getStatusFile().get().getAsFile();
+        try (Writer writer = new BufferedWriter(new FileWriter(statusFile))) {
             writer.write("id: ");
             writer.write(network.getId());
             writer.write("\n");
@@ -57,10 +57,8 @@ abstract public class DockerNetworkCreateTask extends DefaultTask {
             writer.write("scope: ");
             writer.write(network.getScope());
             writer.write("\n");
-
-            writer.close();
         } catch (IOException ex) {
-
+            getLogger().error("could not create network");
         }
     }
 }
