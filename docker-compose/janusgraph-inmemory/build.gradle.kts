@@ -39,7 +39,7 @@ tasks {
     task<Exec>("upJanusgraphV06MemoryServer") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
-            ":docker-compose:janusgraph-Memory:configureJanusgraphV06MemoryServer")
+            ":docker-compose:janusgraph-inmemory:configureJanusgraphV06MemoryServer")
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
         group = "compose"

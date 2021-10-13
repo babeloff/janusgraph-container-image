@@ -1,32 +1,27 @@
 plugins {
-    base
+    id("the-docker-plugin")
 }
 
-tasks {
-    /**
-     * If there is ever a docker plugin for running docker commands:
-     * * create the volumes
-     * * create the networks
-     */
-    val volumes = listOf(
-        mapOf("name" to "jg-corpus-data", "task" to "Corpus"),
-        mapOf("name" to "jg-product-data", "task" to "Product"),
-        mapOf("name" to "jg-cql-data", "task" to "Cql"),
-        mapOf("name" to "jg-es-data", "task" to "Es"),
-        mapOf("name" to "jg-scripts", "task" to "Script"))
+dockerVolumes {
+    create("JgCorpusData") {
+        title.set("jg-corpus-data")
+    }
+    create("JgProductData") {
+        title.set("jg-product-data")
+    }
+    create("JgCqlData") {
+        title.set("jg-cql-data")
+    }
+    create("JgEsData") {
+        title.set("jg-es-data")
+    }
+    create("JgScript") {
+        title.set("jg-scripts")
+    }
+}
 
-    volumes.forEach {
-        register<Exec>("dockerCreateJGVolume${it["task"]}") {
-            group = "docker"
-            executable("docker")
-            args(listOf("volume", "create", "--driver", "local", "--name=${it["name"]}"))
-            logger.info("$this")
-        }
-        register<Exec>("dockerRemoveJGVolume${it["task"]}") {
-            group = "docker"
-            executable("docker")
-            args(listOf("volume", "rm", "${it["name"]}"))
-            logger.info("$this")
-        }
+dockerNetworks {
+    create("JgBridge") {
+        title.set("jg-network")
     }
 }

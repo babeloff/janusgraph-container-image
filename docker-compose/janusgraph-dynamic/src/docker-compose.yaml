@@ -99,11 +99,7 @@ services:
         source: 'jg-product-data'
         target: /opt/janusgraph/product
     healthcheck:
-      test:
-        - 'CMD'
-        - 'bin/gremlin.sh'
-        - '-e'
-        - 'scripts/remote-connect.gremlin'
+      test: ['CMD', 'bin/gremlin.sh', '-e', 'scripts/remote-connect.gremlin']
       interval: 10s
       timeout: 30s
       retries: 3

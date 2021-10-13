@@ -40,10 +40,10 @@ tasks {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-dynamic:configureJanusgraphV06DynamicServer",
-            ":docker-compose:dockerCreateJGVolumeCorpus",
-            ":docker-compose:dockerCreateJGVolumeProduct",
-            ":docker-compose:dockerCreateJGVolumeCql",
-            ":docker-compose:dockerCreateJGVolumeEs",
+            ":docker-compose:createDockerVolumeJgCorpusData",
+            ":docker-compose:createDockerVolumeJgProductData",
+            ":docker-compose:createDockerVolumeJgCqlData",
+            ":docker-compose:createDockerVolumeJgEsData",
         )
 //        logger.quiet("docker compose up task $path")
         executable = "docker"
