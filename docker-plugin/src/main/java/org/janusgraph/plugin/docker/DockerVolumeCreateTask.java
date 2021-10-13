@@ -42,9 +42,9 @@ abstract public class DockerVolumeCreateTask extends DefaultTask {
         InspectVolumeResponse volumeInfo = client
                 .inspectVolumeCmd(rc.getName())
                 .exec();
-        try {
-            File statusFile = getStatusFile().get().getAsFile();
-            Writer writer = new BufferedWriter(new FileWriter(statusFile));
+
+        File statusFile = getStatusFile().get().getAsFile();
+        try (Writer writer = new BufferedWriter(new FileWriter(statusFile))) {
             writer.write("name: ");
             writer.write(volumeInfo.getName());
             writer.write("\n");
@@ -67,10 +67,8 @@ abstract public class DockerVolumeCreateTask extends DefaultTask {
                     writer.write("\n");
                 }
             }
-
-            writer.close();
         } catch (IOException ex) {
-
+            getLogger().error("could not open status file");
         }
     }
 
