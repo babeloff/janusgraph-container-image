@@ -6,7 +6,7 @@
 plugins {
     id("org.jetbrains.gradle.docker")
     id("com.pswidersk.yaml-secrets-plugin")
-    id("the-docker-plugin")
+    id("annex-docker-plugin")
 }
 
 version = "2021.10.14"
@@ -44,13 +44,13 @@ docker {
 tasks {
     val containerName = "janusgraph-v06"
 
-    task<org.janusgraph.plugin.docker.DockerStopTask>("stopJanusgraphV06") {
+    register<org.janusgraph.plugin.docker.DockerStopTask>("stopJanusgraphV06") {
         group = "application"
         title.set(containerName)
         logger.info("$this")
     }
 
-    task<org.janusgraph.plugin.docker.DockerRunTask>("runJanusgraphV06") {
+    register<org.janusgraph.plugin.docker.DockerRunTask>("runJanusgraphV06") {
         dependsOn("dockerJanusgraphV06Build")
         group = "application"
         image.set(docker.images["janusgraphV06"].imageNameWithTag)

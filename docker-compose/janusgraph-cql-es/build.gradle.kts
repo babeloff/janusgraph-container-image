@@ -4,33 +4,33 @@
  */
 
 plugins {
-    id("the-docker-plugin")
+    id("annex-docker-plugin")
 }
 
 version = "2021.10.14"
 
 tasks {
 
-    task<Copy>("configureJanusgraphV06CqlEsServer") {
+    register<Copy>("configureJanusgraphV06CqlEsServer") {
         group = "compose"
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-//        expand("dockerImage" to "docker.io/babeloff/janusgraph-v06:latest")
         expand(
-            "dockerImage" to "janusgraph-v06",
-            "dockerImageVersion" to "2021.10.6")
+            "dockerImage" to "docker.io/mesolab/janusgraph-v06",
+            "dockerImageVersion" to "2021.10.14")
     }
 
-    task<org.janusgraph.plugin.docker.DockerComposeDownTask>("downJanusgraphV06CqlEsServer") {
+    val composeTitle = "janusgraph-cql-es-server"
+
+    register<org.janusgraph.plugin.docker.DockerComposeDownTask>("downJanusgraphV06CqlEsServer") {
         group = "compose"
-//        logger.quiet("docker compose up task $path")
-        title.set("janusgraph-cql-es-server")
+        title.set(composeTitle)
         yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
 
-    task<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06CqlEsServer") {
+    register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06CqlEsServer") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-cql-es:configureJanusgraphV06CqlEsServer",
@@ -39,8 +39,7 @@ tasks {
             ":docker-compose:createDockerVolumeJgCqlData",
             ":docker-compose:createDockerVolumeJgEsData")
         group = "compose"
-//        logger.quiet("docker compose up task $path")
-        title.set("janusgraph-cql-es-server")
+        title.set(composeTitle)
         yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }

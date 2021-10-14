@@ -19,7 +19,7 @@ services:
   # tag::janusgraph[]
   janusgraph:
     labels:
-      sponsor: 'babeloff'
+      sponsor: 'mesolab'
     image: '${dockerImage}:${dockerImageVersion}'
     container_name: jce-jg
     depends_on:
@@ -30,8 +30,8 @@ services:
       JG_SHOW: 'env server graphs scripts'
       JVM_OPTIONS:  '-Xms512m -Xmx512m'
       # tag::janusgraph_environment[]
-      JG_SERVER_TEMP: 'janusgraph-server'
-      JG_GRAPH_TEMP: 'janusgraph-inmemory-graph'
+      JG_SVC_TEMPLATE: 'janusgraph-server'
+      JG_GRAPH_TEMPLATE: 'janusgraph-inmemory-graph'
 
       # http://tinkerpop.apache.org/javadocs/3.4.6/full/org/apache/tinkerpop/gremlin/server/Settings.html
 

@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id("the-docker-plugin")
+    id("annex-docker-plugin")
 }
 
 version = "2021.10.14"
@@ -18,9 +18,11 @@ tasks {
 //        expand("dockerImage" to "docker.io/phreed/janusgraph-v06:latest")
         expand(
             "dockerImage" to "janusgraph-v06",
-            "dockerImageVersion" to "2021.10.6",
+            "dockerImageVersion" to "2021.10.14",
             "schemaPath" to layout.projectDirectory.dir ("../schema"))
     }
+
+    val composeTitle = "janusgraph-client"
 
     register<DockerComposeRunTask>("startJanusgraphV06Client") {
         dependsOn(
@@ -30,8 +32,7 @@ tasks {
             ":docker-compose:createDockerVolumeJgProductData",
             )
         group = "compose"
-//        logger.quiet("docker compose up task $path")
-        title.set("janusgraph-client")
+        title.set(composeTitle)
         alias.set("jg-client")
         yaml.set(layout.buildDirectory.file("docker-compose-jg-corpus.yaml"))
         logger.info("$this")

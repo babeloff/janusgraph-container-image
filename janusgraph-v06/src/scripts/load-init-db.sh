@@ -27,9 +27,9 @@ then
 fi
 
 # wait for JanusGraph Server
-if [ -n "${JG_SERVER_TIMEOUT:-}" ]
+if [ -n "${JG_SVC_TIMEOUT:-}" ]
 then
-  timeout "${JG_SERVER_TIMEOUT}s" bash -c \
+  timeout "${JG_SVC_TIMEOUT}s" bash -c \
     "until true &>/dev/null </dev/tcp/127.0.0.1/8182; do echo \"waiting for JanusGraph Server...\"; sleep 5; done"
 fi
 

@@ -19,7 +19,7 @@ services:
   # tag::jg_client[]
   jg-client:
     labels:
-      sponsor: 'babeloff'
+      sponsor: 'mesolab'
     image: '${dockerImage}:${dockerImageVersion}'
     command:
       - './bin/gremlin.sh'

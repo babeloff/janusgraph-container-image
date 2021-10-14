@@ -16,16 +16,17 @@ tasks {
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-//        expand("dockerImage" to "docker.io/babeloff/janusgraph-v06:latest")
+//        expand("dockerImage" to "docker.io/mesolab/janusgraph-v06:latest")
         expand(
             "dockerImage" to "janusgraph-v06",
-            "dockerImageVersion" to "2021.10.6")
+            "dockerImageVersion" to "2021.10.14")
     }
+
+    val composeTitle = "janusgraph-inmemory-server"
 
     register<org.janusgraph.plugin.docker.DockerComposeDownTask>("downJanusgraphV06MemoryServer") {
         group = "compose"
-//        logger.quiet("docker compose up task $path")
-        title.set("janusgraph-inmemory-server")
+        title.set(composeTitle)
         yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }
@@ -35,8 +36,7 @@ tasks {
             ":janusgraph-v06:dockerJanusgraphV06Build",
             ":docker-compose:janusgraph-inmemory:configureJanusgraphV06MemoryServer")
         group = "compose"
-//        logger.quiet("docker compose up task $path")
-        title.set("janusgraph-inmemory-server")
+        title.set(composeTitle)
         yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
         logger.info("$this")
     }

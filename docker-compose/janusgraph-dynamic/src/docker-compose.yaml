@@ -19,7 +19,7 @@ services:
   # tag::janusgraph[]
   janusgraph:
     labels:
-      sponsor: 'babeloff'
+      sponsor: 'mesolab'
     image: '${dockerImage}:${dockerImageVersion}'
     container_name: jce-jg
     depends_on:
@@ -30,15 +30,15 @@ services:
       JG_SHOW: 'env server graphs scripts'
       JVM_OPTIONS:  '-Xms512m -Xmx512m'
       # tag::janusgraph_environment[]
-      JG_SERVER_TEMP: 'janusgraph-server'
-      JG_GRAPH_TEMP: 'janusgraph-cql-es-graph'
+      JG_SVC_TEMPLATE: 'janusgraph-server'
+      JG_GRAPH_TEMPLATE: 'janusgraph-cql-es-graph'
 
       # http://tinkerpop.apache.org/javadocs/3.4.6/full/org/apache/tinkerpop/gremlin/server/Settings.html
 
       JG_SVC__evaluationTimeout: '.evaluationTimeout = 1200000'
       JG_SVC__threadPoolWorker: '.threadPoolWorker = 3'
 
-      # the following allows the the server to serialize sub-graphs
+      # the following allows the server to serialize sub-graphs
       JG_SVC__tinkerIO: >-
         .serializers[] |=
         select(.className == "org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0'

@@ -12,7 +12,7 @@ java {
 gradlePlugin {
     plugins {
         create("theDockerPlugin") {
-            id = "the-docker-plugin"
+            id = "annex-docker-plugin"
             implementationClass = "org.janusgraph.plugin.docker.DockerPlugin"
         }
     }

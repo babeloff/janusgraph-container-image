@@ -61,10 +61,10 @@ ENV JG_VERSION=${JG_VERSION}
 ENV JG_HOME=/opt/janusgraph
 ENV JG_CONFIG_DIR=/etc/opt/janusgraph
 ENV JG_DATA_DIR=/var/lib/janusgraph
-ENV JG_SERVER_TIMEOUT=30
+ENV JG_SVC_TIMEOUT=30
 ENV JG_STORAGE_TIMEOUT=60
-ENV JG_SERVICE_TEMP=janusgraph-server
-ENV JG_GRAPH_TEMP=janusgraph-cql-es-graph
+ENV JG_SVC_TEMPLATE=janusgraph-server
+ENV JG_GRAPH_TEMPLATE=janusgraph-cql-es-graph
 ENV JG_INIT_DB_DIR=/docker-entrypoint-init-db.d
 ENV JG_SVC__00graphProperties='.graphs.graph = "/etc/opt/janusgraph/janusgraph.properties"'
 ENV JG_SVC__00threadPoolWorker='.threadPoolWorker = 1'

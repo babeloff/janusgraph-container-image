@@ -16,7 +16,7 @@
 
 JG_CONFIG_DIR="${JG_CONFIG_DIR:-/etc/opt/janusgraph}"
 JG_PROPS_YAML="${JG_CONFIG_DIR}/janusgraph-graph.yaml"
-JG_SERVER_YAML="${JG_CONFIG_DIR}/janusgraph-server.yaml"
+JG_SVC_YAML="${JG_CONFIG_DIR}/janusgraph-server.yaml"
 
 echo 'running as root; step down to run as janusgraph user'
 if
@@ -40,19 +40,19 @@ if
 then
   mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
-  # If JG_SERVER_TEMP not set, then provide a reasonable default
-  JG_SERVER_YAML_SRC=$(realpath "conf/${JG_SERVER_TEMP:-janusgraph-server}.yaml")
+  # If JG_SVC_TEMPLATE not set, then provide a reasonable default
+  JG_SVC_YAML_SRC=$(realpath "conf/${JG_SVC_TEMPLATE:-janusgraph-server}.yaml")
   if
-    cp "${JG_SERVER_YAML_SRC}" "${JG_SERVER_YAML}"
+    cp "${JG_SVC_YAML_SRC}" "${JG_SVC_YAML}"
   then
-    echo 'copied ' "${JG_SERVER_YAML_SRC}"
+    echo 'copied ' "${JG_SVC_YAML_SRC}"
   else
-    echo 'failed to copy ' "${JG_SERVER_YAML_SRC}"
+    echo 'failed to copy ' "${JG_SVC_YAML_SRC}"
     ls "conf/*.yaml"
   fi
 
-  # If JG_GRAPH_TEMP not set, then provide a reasonable default
-  JG_PROPS_YAML_BASE=$(realpath "conf/${JG_GRAPH_TEMP:-janusgraph-inmemory-graph}.yaml")
+  # If JG_GRAPH_TEMPLATE not set, then provide a reasonable default
+  JG_PROPS_YAML_BASE=$(realpath "conf/${JG_GRAPH_TEMPLATE:-janusgraph-inmemory-graph}.yaml")
   if
     cp "${JG_PROPS_YAML_BASE}" "${JG_PROPS_YAML}"
   then
@@ -78,7 +78,7 @@ then
       EVAL_CMD="$ENV_VAL"
 
       echo "update server '${EVAL_INDEX}' with '${EVAL_CMD}'"
-      yq eval "${EVAL_CMD}" "${JG_SERVER_YAML}" --prettyPrint --inplace
+      yq eval "${EVAL_CMD}" "${JG_SVC_YAML}" --prettyPrint --inplace
 
     # JG_GRAPH__*
     elif [[ "${ENV_KEY}" =~ JG_GRAPH__([[:alnum:]]+)_([[:graph:]]+) ]] && [[ -n ${ENV_VAL} ]]
@@ -168,7 +168,7 @@ then
     if
      test -n "${JG_STORAGE_TIMEOUT:-}"
     then
-      yq eval '.graphs' "${JG_SERVER_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
+      yq eval '.graphs' "${JG_SVC_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
         tempFile="$(mktemp --suffix .groovy)"
         echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$F"
@@ -183,7 +183,7 @@ then
     echo 'loading the initial database'
     /usr/local/bin/load-init-db.sh &
     echo 'starting the JanusGraph server'
-    exec "${JG_HOME}/bin/janusgraph-server.sh" "${JG_SERVER_YAML}"
+    exec "${JG_HOME}/bin/janusgraph-server.sh" "${JG_SVC_YAML}"
     ;;
    *)
     echo "action unknown ${JG_ACTION} ; fail"

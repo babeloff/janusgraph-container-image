@@ -1,5 +1,5 @@
 plugins {
-    id("the-docker-plugin")
+    id("annex-docker-plugin")
 }
 
 dockerVolumes {

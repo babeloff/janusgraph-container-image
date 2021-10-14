@@ -171,7 +171,7 @@ See <<Gremlin-Server-Config, Gremlin Server Environment Variable Syntax>>
 section below for help edit gremlin server configuration using environment variables.
 | optional
 
-| `JG_GRAPH_TEMP`
+| `JG_GRAPH_TEMPLATE`
 | The Janusgraph template specifies the template properties file to which
 the `JG_GRAPH__*` edits will be applied for each back-end.
 | no default value
@@ -184,7 +184,7 @@ See <<Janusgraph-Backend-Config, Janusgraph Database Environment Variable Syntax
 section below for help edit gremlin server configuration using environment variables
 | no default value
 
-| `JG_SERVER_TIMEOUT`
+| `JG_SVC_TIMEOUT`
 | Timeout (seconds) used when waiting for Gremlin Server before executing initialization scripts.
 | `30`
 
@@ -322,7 +322,7 @@ janusgraph-mount | chown: changing ownership of '/etc/opt/janusgraph/janusgraph.
 [[Janusgraph-Backend-Config]]
 ==== Janusgraph Back-End Configuration : Environment Variable Syntax
 
-The `JG_GRAPH_TEMP` environment variable is used to define a template JanusGraph properties file.
+The `JG_GRAPH_TEMPLATE` environment variable is used to define a template JanusGraph properties file.
 Values in the template properties file are used unless an alternate value
 for a given property is provided in the environment.
 The common usage will be to specify a template for the general environment (e.g., `cassandra-es`)
@@ -354,10 +354,10 @@ storage and server settings:
 [source,bash]
 ----
 docker run --name janusgraph-v06-default \
-    -e JG_GRAPH_TEMPLATE=janusgraph-cql-es-graph \
+    -e JG_GRAPH_TEMPLATELATE=janusgraph-cql-es-graph \
     -e JG_GRAPH__default_storageCachePercentage='.storage.cache-percentage=80' \
     -e JG_SVC__workerCount='.threadPoolWorker=2' \
-    docker.io/babeloff/janusgraph-v06:latest
+    docker.io/mesolab/janusgraph-v06:latest
 ----
 
 Inspect the configuration:

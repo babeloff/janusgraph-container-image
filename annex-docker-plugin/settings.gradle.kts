@@ -1,11 +1,11 @@
 
-rootProject.name = "docker-plugin"
+rootProject.name = "annex-docker-plugin"
 
 pluginManagement {
     repositories {
         gradlePluginPortal()
     }
-    includeBuild("../the-platform")
+    includeBuild("../annex-platform")
 }
 
 dependencyResolutionManagement {
