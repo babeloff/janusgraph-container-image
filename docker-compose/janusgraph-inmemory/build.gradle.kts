@@ -7,7 +7,7 @@ plugins {
     base
 }
 
-version = "2021.10.6"
+version = "2021.10.14"
 
 tasks {
 

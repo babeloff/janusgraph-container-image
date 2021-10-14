@@ -9,7 +9,7 @@ plugins {
     id("the-docker-plugin")
 }
 
-version = "2021.10.6"
+version = "2021.10.14"
 
 docker {
 

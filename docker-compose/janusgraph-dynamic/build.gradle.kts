@@ -7,7 +7,7 @@ plugins {
     id("the-docker-plugin")
 }
 
-version = "2021.10.6"
+version = "2021.10.14"
 
 tasks {
 
@@ -16,7 +16,6 @@ tasks {
         from(layout.projectDirectory.dir("src"))
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-//        expand("dockerImage" to "docker.io/babeloff/janusgraph-v06:latest")
         expand(
             "dockerImage" to "janusgraph-v06",
             "dockerImageVersion" to "2021.10.6")
