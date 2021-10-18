@@ -17,6 +17,7 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 //        expand("dockerImage" to "docker.io/phreed/janusgraph-v06:latest")
         expand(
+//            "dockerImage" to "docker.io/mesolab/janusgraph-v06",
             "dockerImage" to "janusgraph-v06",
             "dockerImageVersion" to "2021.10.14",
             "schemaPath" to layout.projectDirectory.dir ("../schema"))

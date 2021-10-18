@@ -1,0 +1,385 @@
+= SymCPS : Central Server Guide
+:doctype: article
+:revnumber: 1.0
+:revdate: 2021-02-12
+:revremark: The first incarnation of {doctitle}
+:version-label!:
+:description: Notes for developers and operators about decisions made and instructions.
+:keywords: pulsar kubernetes
+:gremlin-script: Scripts
+:imagesdir: figures
+:sectnums:
+:toc:
+
+== A Central Server Configuration for SymCPS
+
+
+Docker compose is a simple orchestration tool.
+It takes a description of a set of containers and instantiates them.
+The janusgraph system consists of the following elements:
+
+* The gremlin server : JanusGraph
+* The graph storage server : Cassandra
+* A docker volume
+* The graph index server : ElasticSearch
+* A docker volume
+* The authentication server : Oauth2-Proxy
+
+=== Operating Environment
+
+Software Platform
+
+* Volume - 2TiB+
+* Processor - 4core
+* Memory - 32GiB
+* OS - Ubuntu server LTS - v20.04 - https://ubuntu.com/download/server
+* Admin Access (via sudo)
+  - symcps (primary owner of docker processes)
+  - bapty, jscott, feisele (dev team)
+  - ehall, jhenry, veeamroot (sys admin team)
+* World Open Ports - ssh:22, websocket:8182, http:8080,
+
+The base Ubuntu repository comes with a version of docker,
+but it is a bit out of date.
+The following links document the official docker repositories:
+* link:https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository[docker]
+* link:https://docs.docker.com/compose/install/#install-compose-on-linux-systems[docker compose]
+
+[source,bash]
+----
+sudo apt update
+sudo apt upgrade
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+----
+
+In order to run all docker commands it will be necessary to
+add your user to the docker group.
+
+[source,bash]
+----
+sudo usermod -aG docker symcps
+----
+
+You will need to logout / login to reset you groups which can be check by...
+
+[source,bash]
+----
+groups
+----
+
+=== Data Volume
+
+
+https://docs.docker.com/storage/storagedriver/btrfs-driver/
+
+In order to make the data persist docker provides the notion of volumes.
+link:https://docs.docker.com/engine/reference/commandline/volume_create/[Docker volumes]
+may be created apart from the composition.
+
+
+==== Windows Based Volumes
+
+https://adamtheautomator.com/docker-volume-create/
+
+[source,powershell]
+----
+#docker volume create \
+#  --driver local \
+#  --label janusgraph=cql \
+#  --opt type=btrfs \
+#  janus-cql-data
+#
+#
+#docker volume create \
+#  --driver local \
+#  --label janusgraph=es \
+#  janus-es-data
+----
+
+[source,powershell]
+----
+#docker volume create \
+#  --driver local \
+#  --opt type=ext4 \
+#  --opt device=/dev/sdb \
+#  janus-data
+----
+
+
+==== Btrfs Based Volumes
+
+Btrfs is a modern file system and disk partitioner.
+It works well with docker.
+
+===== Stop Docker
+
+Docker is under the control of systemd.
+
+[source,bash]
+----
+sudo systemctl stop docker.service
+sudo systemctl stop docker.socket
+----
+
+===== Copy the docker files
+
+Copy contents of /var/lib/docker/ to a backup location,
+then empty the contents of /var/lib/docker/:
+
+[source,bash]
+----
+sudo cp -au /var/lib/docker /var/lib/docker.bk
+sudo rm -rf /var/lib/docker/*
+----
+
+===== Format
+
+Format your dedicated block device or devices as a Btrfs filesystem.
+This example assumes that you are using two block devices called /dev/sdb.
+Double-check the block device names because this is a destructive operation.
+
+[source,bash]
+----
+sudo mkfs.btrfs --force /dev/sdb
+sudo btrfs info
+----
+[source,text]
+----
+btrfs-progs v5.4.1
+See http://btrfs.wiki.kernel.org for more information.
+
+Label:              (null)
+UUID:               c0602518-97f2-43f0-bab0-fd5742907d56
+Node size:          16384
+Sector size:        4096
+Filesystem size:    1.95TiB
+Block group profiles:
+  Data:             single            8.00MiB
+  Metadata:         DUP               1.00GiB
+  System:           DUP               8.00MiB
+SSD detected:       no
+Incompat features:  extref, skinny-metadata
+Checksum:           crc32c
+Number of devices:  1
+Devices:
+   ID        SIZE  PATH
+    1     1.95TiB  /dev/sdb
+----
+
+There are many more options for Btrfs, including striping and RAID.
+See the Btrfs documentation.
+
+===== Mount
+Mount the new Btrfs filesystem on the /var/lib/docker/ mount point.
+You can specify any of the block devices used to create the Btrfs filesystem.
+
+[source,bash]
+----
+sudo mount -t btrfs /dev/sdb /var/lib/docker
+----
+
+Make the change permanent across reboots by adding an entry to /etc/fstab.
+
+[source,fstab]
+----
+UUID=c0602518-97f2-43f0-bab0-fd5742907d56 /var/lib/docker btrfs defaults 0 0
+----
+
+===== Copy docker files
+
+Copy the contents of /var/lib/docker.bk to /var/lib/docker/.
+
+[source,bash]
+----
+sudo cp -au /var/lib/docker.bk/* /var/lib/docker/
+----
+
+===== Configure Docker to use the btrfs
+
+Configure Docker to use the btrfs storage driver.
+This is required even though /var/lib/docker/ is now using a Btrfs filesystem.
+Edit or create the file /etc/docker/daemon.json.
+If it is a new file, add the following contents.
+If it is an existing file, add the key and value only,
+being careful to end the line with a comma if it is not the final line
+before an ending curly bracket (}).
+
+[source,json]
+----
+{
+"storage-driver": "btrfs"
+}
+----
+
+See all storage options for each storage driver in the daemon reference documentation.
+
+===== Restart Docker
+
+
+[source,bash]
+----
+sudo systemctl start docker.service
+sudo systemctl start docker.socket
+----
+
+After it is running, verify that btrfs is being used as the storage driver.
+
+[source,bash]
+----
+docker info
+----
+
+===== Perform Scheduled Maintenance
+
+https://opensource.com/article/20/7/systemd-timers
+
+`/etc/systemd/system/docker-balance.service`
+[source,unit file (systemd)]
+----
+[Unit]
+Description=Performs admin on docker filesystems
+Wants=docker-balance.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/btrfs filesystem balance /var/lib/docker
+
+[Install]
+WantedBy=multi-user.target
+----
+
+`/etc/systemd/system/docker-balance.timer`
+[source,unit file (systemd)]
+----
+[Unit]
+Description=Triggers admin on docker filesystems
+Requires=docker-balance.service
+
+# every day at 12:15:30 am
+[Timer]
+Unit=docker-balance.service
+OnCalendar=*-*-* 00:15:30
+
+[Install]
+WantedBy=timers.target
+----
+
+=== JanusGraph
+
+
+[source,yaml]
+----
+include::janusgraph-cql-es/docker-compose.yaml[tag=janusgraph]
+----
+
+[source,yaml]
+----
+include::janusgraph-cql-es/docker-compose.yaml[tag=cassandra]
+----
+
+[source,yaml]
+----
+include::janusgraph-cql-es/docker-compose.yaml[tag=elasticsearch]
+----
+
+[source,yaml]
+----
+include::janusgraph-cql-es/docker-compose.yaml[tag=volumes]
+----
+
+
+[source,bash]
+----
+cd ~/athens-model-development/OpenMETAModels/ExportedGraphML/docker/janusgraph-cql-es
+
+docker compose up
+----
+
+== Minio / S3
+
+
+== Troubleshooting
+
+=== Btrfs
+
+Data recovery if bad things happen.
+
+* btrfs scrub
+* mount read only
+* btrfs-zero-log
+* btrfs restore
+* btrfs check --repair
+
+=== Docker Volumes
+
+==== Linux
+
+[source,bash]
+----
+docker volume list
+----
+[source,text]
+----
+DRIVER    VOLUME NAME
+local     66a5f2f12a9b28c4f6dd38b7eff8c96d1f6664ca0e99b35421ca2bf92d0be3a9
+local     e97fd94853ad95009a947d88db0680212292082dddf309c30c0fc800076aa719
+local     janus-cql-data
+local     janus-data
+local     janusgraph-cql-es_janus-cql-data
+local     janusgraph-cql-es_janus-es-data
+----
+
+
+[source,bash]
+----
+docker volume list
+----
+[source,text]
+----
+DRIVER    VOLUME NAME
+local     66a5f2f12a9b28c4f6dd38b7eff8c96d1f6664ca0e99b35421ca2bf92d0be3a9
+local     e97fd94853ad95009a947d88db0680212292082dddf309c30c0fc800076aa719
+local     janus-cql-data
+local     janus-data
+local     janusgraph-cql-es_janus-cql-data
+local     janusgraph-cql-es_janus-es-data
+----
+
+[source,bash]
+----
+docker volume inspect janusgraph-cql-es_janus-cql-data
+----
+[source,text]
+----
+[
+    {
+        "CreatedAt": "2021-02-15T14:30:53-06:00",
+        "Driver": "local",
+        "Labels": {
+            "com.docker.compose.project": "janusgraph-cql-es",
+            "com.docker.compose.version": "1.28.2",
+            "com.docker.compose.volume": "janus-cql-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/janusgraph-cql-es_janus-cql-data/_data",
+        "Name": "janusgraph-cql-es_janus-cql-data",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+----
+
+Notice the btrfs mount point.
+
+[source,bash]
+----
+docker exec -it jce-jg bash
+----
+
+Let's take a look at the bind mount of the git repository.
+[source,bash]
+----
+ls ./mydata
+----
+
+
+

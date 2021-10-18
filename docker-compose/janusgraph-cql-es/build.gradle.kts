@@ -17,7 +17,8 @@ tasks {
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         expand(
-            "dockerImage" to "docker.io/mesolab/janusgraph-v06",
+            "dockerImage" to "janusgraph-v06",
+//            "dockerImage" to "docker.io/mesolab/janusgraph-v06",
             "dockerImageVersion" to "2021.10.14")
     }
 
@@ -33,11 +34,13 @@ tasks {
     register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06CqlEsServer") {
         dependsOn(
             ":janusgraph-v06:dockerJanusgraphV06Build",
-            ":docker-compose:janusgraph-cql-es:configureJanusgraphV06CqlEsServer",
-            ":docker-compose:createDockerVolumeJgCorpusData",
-            ":docker-compose:createDockerVolumeJgProductData",
-            ":docker-compose:createDockerVolumeJgCqlData",
-            ":docker-compose:createDockerVolumeJgEsData")
+            ":janusgraph-cql-es:configureJanusgraphV06CqlEsServer",
+            ":janusgraph-util:createDockerNetworkJgBridgeNetwork",
+            ":janusgraph-util:createDockerVolumeJgCorpusData",
+            ":janusgraph-util:createDockerVolumeJgProductData",
+            ":janusgraph-util:createDockerVolumeJgCqlData",
+            ":janusgraph-util:createDockerVolumeJgEsData",
+        )
         group = "compose"
         title.set(composeTitle)
         yaml.set(layout.buildDirectory.file("docker-compose.yaml"))
