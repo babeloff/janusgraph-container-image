@@ -14,8 +14,13 @@ WORKDIR /opt
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Prepare to get components
-RUN /usr/bin/apt-get update -y
-RUN /usr/bin/apt-get install -y gpg unzip curl dos2unix
+RUN /usr/bin/apt-get update && /usr/bin/apt-get install -y \
+    curl \
+    dos2unix \
+    gpg \
+    unzip \
+    && /bin/rm -rf /var/lib/apt/lists/*
+
 # Get YQ
 RUN /usr/bin/curl -fSL https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 -o yq
 RUN /bin/chmod 755 /opt/yq
@@ -40,7 +45,10 @@ RUN /bin/rm -rf ${JANUS_HOME}/conf/janusgraph-*.properties
 RUN /bin/rm -rf ${JANUS_HOME}/conf/gremlin-server
 
 # Clean up Miscellaneous
-RUN /usr/bin/apt-get --purge remove -y gpg unzip curl
+RUN /usr/bin/apt-get --purge remove -y \
+    curl \
+    gpg \
+    unzip
 
 COPY conf/ ${JG_HOME}/conf/
 COPY scripts/remote-connect.gremlin ${JG_HOME}/scripts/
@@ -72,10 +80,10 @@ ENV JG_SVC__00gremlinPool='.gremlinPool = 8'
 
 RUN /usr/sbin/groupadd -r janusgraph --gid=999
 RUN /usr/sbin/useradd -r -g janusgraph --uid=999 -d ${JG_DATA_DIR} janusgraph
-RUN /usr/bin/apt-get update -y
-RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get install -y --no-install-recommends krb5-user
-RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get install -y dos2unix
-RUN /bin/rm -rf /var/lib/apt/lists/*
+RUN /usr/bin/apt-get update && DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get install -y --no-install-recommends \
+    dos2unix \
+    krb5-user \
+    && /bin/rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/janusgraph/ /opt/janusgraph/
 COPY --from=builder /opt/yq /usr/bin/yq
@@ -94,7 +102,6 @@ RUN /bin/chown -R janusgraph:janusgraph ${JG_HOME} ${JG_INIT_DB_DIR} ${JG_CONFIG
 
 # Clean up
 RUN /usr/bin/apt-get --purge remove -y dos2unix
-RUN /bin/rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8182
 

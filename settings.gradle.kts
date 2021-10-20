@@ -11,3 +11,4 @@ pluginManagement {
 }
 
 includeBuild("docker-compose")
+includeBuild("janusgraph-v06")
