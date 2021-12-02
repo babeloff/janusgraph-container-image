@@ -59,4 +59,3 @@ tasks {
         logger.info("$this")
     }
 }
-
