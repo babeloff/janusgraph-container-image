@@ -26,8 +26,14 @@ then
    test "$(id -u)" == "0"
   then
     echo 'starting entry point as root; stepping down to run as "janusgraph" user'
+
+    mkdir -p "${JG_INIT_DB_DIR}"
     mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
+    groupadd -r janusgraph --gid=999
+    useradd -r -g janusgraph --uid=999 -d "${JG_DATA_DIR}" janusgraph
+    chown -R janusgraph:janusgraph "${JG_HOME}" "${JG_INIT_DB_DIR}"
     chown -R janusgraph:janusgraph "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
+
     chmod 700 "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
     exec chroot --skip-chdir --userspec janusgraph:janusgraph / "${BASH_SOURCE[0]}" "$@"
@@ -171,7 +177,7 @@ then
       yq eval '.graphs' "${JG_SVC_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
         tempFile="$(mktemp --suffix .groovy)"
-        echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$F"
+        echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$tempFile"
         echo 'waiting for graph database : ' "${JG_GRAPH_NAME}"
         timeout "${JG_STORAGE_TIMEOUT}s" bash -c \
           "until bin/gremlin.sh -e \"$tempFile\" > /dev/null 2>&1; do echo \"waiting for storage: \"${JG_GRAPH_NAME}\"...\"; sleep 5; done"

@@ -7,7 +7,7 @@ pluginManagement {
         gradlePluginPortal()
     }
     includeBuild("annex-platform")
-    includeBuild("annex-plugin")
+//    includeBuild("annex-plugin")
     includeBuild("annex-docker-plugin")
 }
 
