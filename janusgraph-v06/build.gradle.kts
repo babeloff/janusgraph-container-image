@@ -4,12 +4,13 @@
  */
 //import de.undercouch.gradle.tasks.download.Download
 import org.apache.tools.ant.filters.FixCrLfFilter
+import java.util.Properties
 
 plugins {
-    id("de.undercouch.download")
     id("com.google.cloud.tools.jib")
     id("com.pswidersk.yaml-secrets-plugin")
-//    id("property-to-yaml-converter")
+    id("property-to-yaml-converter")
+    id("download")
     id("application")
 }
 
@@ -18,6 +19,7 @@ version = "2021.10.14"
 val jgVersion = "0.6.0"
 val yqVersion = "4.13.2"
 val containerName = "janusgraph-v06"
+
 
 jib {
     extraDirectories {
@@ -35,13 +37,14 @@ jib {
         )
     }
     from {
-        image = "openjdk:8-jre-slim-buster"
+        image = "openjdk:11-jre-slim-bullseye"
     }
     to {
-        image = "mesolab/$containerName:janusgraph-container"
+        image = "mesolab/$containerName:prod"
     }
     container {
-//        user = "janusgraph:janusgraph"
+        // nobody in nobody group
+//        user = "1000:1000"
 
         args = listOf("janusgraph")
         creationTime = "2021-12-13T00:00:01Z"
@@ -61,6 +64,7 @@ jib {
         ports = listOf("8182")
         environment = mapOf(
             "JG_VERSION" to jgVersion,
+            "JG_SHOW" to "env server graph",
             "JG_HOME" to "/opt/janusgraph",
             "JG_CONFIG_DIR" to "/etc/opt/janusgraph",
             "JG_DATA_DIR" to "/var/lib/janusgraph",
@@ -69,7 +73,7 @@ jib {
             "JG_SVC_TEMPLATE" to "janusgraph-server",
             "JG_GRAPH_TEMPLATE" to "janusgraph-cql-es-graph",
             "JG_INIT_DB_DIR" to "/docker-entrypoint-init-db.d",
-            "JG_SVC__00graphProperties" to ".graphs.graph = \"/etc/opt/janusgraph/janusgraph.properties\"",
+            "JG_SVC__00graphProperties" to ".graphs.graph = \"/etc/opt/janusgraph/janusgraph-graph.properties\"",
             "JG_SVC__00threadPoolWorker" to ".threadPoolWorker = 1",
             "JG_SVC__00gremlinPool" to ".gremlinPool = 8",
         )
@@ -106,17 +110,13 @@ tasks {
         into(layout.buildDirectory)
     }
 
+    val ztree = layout.buildDirectory.dir("janusgraph-0.6.0")
+
     // For each properties files create an equivalent yaml file
     register<Copy>("prepareJanusgraph") {
         dependsOn("unzipJanusgraph")
         group = "prepare"
 
-        val ztree = layout.buildDirectory.dir("janusgraph-0.6.0")
-        from(ztree) {
-            include("conf/*.properties")
-//            filter(ConvertToYaml)
-            rename("(.+).properties", "$1.yaml")
-        }
         from(ztree) {
             exclude("conf/*.properties")
         }
@@ -125,6 +125,13 @@ tasks {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
         into(layout.buildDirectory.dir("image/opt/janusgraph"))
+    }
+
+    register<org.apache.janusgraph.PropertyToYamlTask>("prepareJanusgraphProperties") {
+        dependsOn("unzipJanusgraph")
+        group = "prepare"
+        propertiesDir.set(layout.buildDirectory.dir("janusgraph-0.6.0/conf"))
+        yamlDir.set(layout.buildDirectory.dir("image/opt/janusgraph/conf"))
     }
 
     // For each properties file create an equivalent yaml file
@@ -141,7 +148,11 @@ tasks {
 
     register("buildImage") {
         group = "build"
-        dependsOn( listOf("prepareJanusgraph", "downloadYq", "prepareScripts"))
+        dependsOn( listOf(
+            "prepareJanusgraph",
+            "prepareJanusgraphProperties",
+            "downloadYq",
+            "prepareScripts"))
     }
 
     jib.configure {
@@ -159,7 +170,7 @@ tasks {
 //    }
 //
 //    register<org.janusgraph.plugin.docker.DockerRunTask>("runJanusgraphV06") {
-//        dependsOn("dockerJanusgraphV06Build")
+//        dependsOn("jibDockerBuild")
 //        group = "application"
 //        image.set(docker.images["janusgraphV06"].imageNameWithTag)
 //        title.set(containerName)

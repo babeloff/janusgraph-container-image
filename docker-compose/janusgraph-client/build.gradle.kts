@@ -26,7 +26,7 @@ tasks {
 
     register<org.janusgraph.plugin.docker.DockerComposeRunTask>("startJanusgraphV06Client") {
         dependsOn(
-            ":janusgraph-v06:dockerJanusgraphV06Build",
+//            ":janusgraph-v06:jibDockerBuild",
             ":docker-compose:janusgraph-client:configureJanusgraphV06Client",
             ":docker-compose:createDockerVolumeJgScript",
             ":docker-compose:createDockerVolumeJgProductData",

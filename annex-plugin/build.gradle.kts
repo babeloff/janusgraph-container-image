@@ -7,4 +7,5 @@ plugins {
 
 dependencies {
     implementation(group="org.yaml", name="snakeyaml", version="1.29")
+    implementation("de.undercouch:gradle-download-task:4.1.2")
 }

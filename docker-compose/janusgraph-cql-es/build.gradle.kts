@@ -17,9 +17,11 @@ tasks {
         into(layout.buildDirectory)
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         expand(
-            "dockerImage" to "janusgraph-v06",
+            "dockerImage" to "mesolab/janusgraph-v06",
 //            "dockerImage" to "docker.io/mesolab/janusgraph-v06",
-            "dockerImageVersion" to "2021.10.14")
+            "dockerImageVersion" to "prod",
+//            "dockerImageVersion" to "2021.10.14",
+        )
     }
 
     val composeTitle = "janusgraph-cql-es-server"
@@ -33,7 +35,7 @@ tasks {
 
     register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06CqlEsServer") {
         dependsOn(
-            ":janusgraph-v06:dockerJanusgraphV06Build",
+//            ":janusgraph-v06:jibDockerBuild",
             ":janusgraph-cql-es:configureJanusgraphV06CqlEsServer",
             ":janusgraph-util:createDockerNetworkJgBridgeNetwork",
             ":janusgraph-util:createDockerVolumeJgCorpusData",

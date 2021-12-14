@@ -33,7 +33,7 @@ tasks {
 
     register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06MemoryServer") {
         dependsOn(
-            ":janusgraph-v06:dockerJanusgraphV06Build",
+//            ":janusgraph-v06:jibDockerBuild",
             ":docker-compose:janusgraph-inmemory:configureJanusgraphV06MemoryServer")
         group = "compose"
         title.set(composeTitle)

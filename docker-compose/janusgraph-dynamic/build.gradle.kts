@@ -33,7 +33,7 @@ tasks {
 
     register<org.janusgraph.plugin.docker.DockerComposeUpTask>("upJanusgraphV06DynamicServer") {
         dependsOn(
-            ":janusgraph-v06:dockerJanusgraphV06Build",
+//            ":janusgraph-v06:jibDockerBuild",
             ":docker-compose:janusgraph-dynamic:configureJanusgraphV06DynamicServer",
             ":docker-compose:createDockerVolumeJgCorpusData",
             ":docker-compose:createDockerVolumeJgProductData",

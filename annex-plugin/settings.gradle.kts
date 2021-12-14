@@ -5,9 +5,9 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
     }
-//    plugins {
-//        id("org.jetbrains.kotlin.jvm") version "1.5.31"
-//    }
+    plugins {
+        id("de.undercouch.download") version "4.1.2"
+    }
 }
 
 dependencyResolutionManagement {

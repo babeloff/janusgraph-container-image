@@ -1,5 +1,5 @@
 
-rootProject.name = "janusgraph-docker2"
+rootProject.name = "janusgraph-oci"
 
 
 pluginManagement {
@@ -7,9 +7,9 @@ pluginManagement {
         gradlePluginPortal()
     }
     includeBuild("annex-platform")
-//    includeBuild("annex-plugin")
+    includeBuild("annex-plugin")
     includeBuild("annex-docker-plugin")
 }
 
-includeBuild("docker-compose")
 includeBuild("janusgraph-v06")
+includeBuild("docker-compose")
