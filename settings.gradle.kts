@@ -1,5 +1,5 @@
 
-rootProject.name = "janusgraph-docker2"
+rootProject.name = "janusgraph-oci"
 
 
 pluginManagement {
@@ -10,5 +10,5 @@ pluginManagement {
     includeBuild("annex-docker-plugin")
 }
 
-includeBuild("docker-compose")
 includeBuild("janusgraph-v06")
+includeBuild("docker-compose")

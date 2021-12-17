@@ -18,7 +18,6 @@ JG_CONFIG_DIR="${JG_CONFIG_DIR:-/etc/opt/janusgraph}"
 JG_PROPS_YAML="${JG_CONFIG_DIR}/janusgraph-graph.yaml"
 JG_SVC_YAML="${JG_CONFIG_DIR}/janusgraph-server.yaml"
 
-echo 'running as root; step down to run as janusgraph user'
 if
  test "$1" == 'janusgraph'
 then
@@ -26,6 +25,8 @@ then
    test "$(id -u)" == "0"
   then
     echo 'starting entry point as root; stepping down to run as "janusgraph" user'
+
+    mkdir -p "${JG_INIT_DB_DIR}"
     mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
     chown -R janusgraph:janusgraph "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
     chmod 700 "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
@@ -40,7 +41,7 @@ if
 then
   mkdir -p "${JG_DATA_DIR}" "${JG_CONFIG_DIR}"
 
-  # If JG_SVC_TEMPLATE not set, then provide a reasonable default
+  echo 'If JG_SVC_TEMPLATE not set, then provide a reasonable default'
   JG_SVC_YAML_SRC=$(realpath "conf/${JG_SVC_TEMPLATE:-janusgraph-server}.yaml")
   if
     cp "${JG_SVC_YAML_SRC}" "${JG_SVC_YAML}"
@@ -51,7 +52,7 @@ then
     ls "conf/*.yaml"
   fi
 
-  # If JG_GRAPH_TEMPLATE not set, then provide a reasonable default
+  echo 'If JG_GRAPH_TEMPLATE not set, then provide a reasonable default'
   JG_PROPS_YAML_BASE=$(realpath "conf/${JG_GRAPH_TEMPLATE:-janusgraph-inmemory-graph}.yaml")
   if
     cp "${JG_PROPS_YAML_BASE}" "${JG_PROPS_YAML}"
@@ -111,15 +112,18 @@ then
     fi
   done < <(compgen -A variable | sort --ignore-nonprinting)
 
-  # convert all the yaml files into equivalent java-properties files
-  for graphYaml in "${JG_CONFIG_DIR}"/*.yaml
+  echo 'convert all the yaml files into equivalent java-properties files'
+  for candidateYaml in "${JG_CONFIG_DIR}"/*.yaml
   do
-    test -f "$graphYaml" || break
-    graphProps="${JG_CONFIG_DIR}/$(basename "$graphYaml" .yaml).properties"
-    yq eval --output-format props "${graphYaml}" > "${graphProps}"
+    test -f "$candidateYaml" || continue
+    BASE_NAME=$(basename "$candidateYaml" .yaml)
+    graphProps="${JG_CONFIG_DIR}/${BASE_NAME}.properties"
+    yq eval --output-format props "$candidateYaml" > "${graphProps}"
+    echo "properties file: ${graphProps}"
   done
 
-  # show the requested information
+  # shellcheck disable=SC2016
+  echo "show the requested information $JG_SHOW"
   # JG_SHOW is a list of names
   show_array=($JG_SHOW)
   for (( ix=0; ix<${#show_array[@]}; ix++ ))
@@ -171,7 +175,7 @@ then
       yq eval '.graphs' "${JG_SVC_YAML}" | while IFS=: read -r JG_GRAPH_NAME JG_FILE
       do
         tempFile="$(mktemp --suffix .groovy)"
-        echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$F"
+        echo 'graph = JanusGraphFactory.open(' "${JG_FILE}" ')' > "$tempFile"
         echo 'waiting for graph database : ' "${JG_GRAPH_NAME}"
         timeout "${JG_STORAGE_TIMEOUT}s" bash -c \
           "until bin/gremlin.sh -e \"$tempFile\" > /dev/null 2>&1; do echo \"waiting for storage: \"${JG_GRAPH_NAME}\"...\"; sleep 5; done"
